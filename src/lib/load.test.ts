@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { parseCsv } from '../core/csv';
-import { UPLOAD_LIMITS, loadBytes, loadFile, sha256Hex } from './load';
+import { parseCsv, UPLOAD_LIMITS } from '../core/csv';
+import { loadBytes, loadFile, sha256Hex } from './load';
 
 const bytesOf = (text: string) => new TextEncoder().encode(text);
 
@@ -54,23 +54,4 @@ it('refuses a file over the size limit before reading it', async () => {
   const result = await loadFile(file);
   expect(result).toEqual({ ok: false, error: 'This file is 10.0 MB. The limit is 10 MB.' });
   expect(read).toBe(false);
-});
-
-// The page states the limits and the core enforces them. Until the core exports its numbers,
-// this test fails when the two stop agreeing.
-it("the stated limits are the core's limits", () => {
-  const accepts = (text: string) => parseCsv(text, 'limits.csv').ok;
-
-  const header = (columns: number) => Array.from({ length: columns }, (_, index) => `c${index}`).join(',');
-  expect(accepts(`${header(UPLOAD_LIMITS.columns)}\n`)).toBe(true);
-  expect(accepts(`${header(UPLOAD_LIMITS.columns + 1)}\n`)).toBe(false);
-
-  const rows = (count: number) => `n\n${'1\n'.repeat(count)}`;
-  expect(accepts(rows(UPLOAD_LIMITS.rows))).toBe(true);
-  expect(accepts(rows(UPLOAD_LIMITS.rows + 1))).toBe(false);
-
-  const ofBytes = (count: number) => `n\n${'x'.repeat(count - 2)}`;
-  const maxBytes = UPLOAD_LIMITS.megabytes * 1024 * 1024;
-  expect(accepts(ofBytes(maxBytes))).toBe(true);
-  expect(accepts(ofBytes(maxBytes + 1))).toBe(false);
 });

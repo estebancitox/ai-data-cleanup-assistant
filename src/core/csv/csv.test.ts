@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { table } from '../testing';
-import { parseCsv, serializeCsv } from './index';
+import { parseCsv, serializeCsv, UPLOAD_LIMITS } from './index';
 
 function ok(text: string) {
   const parsed = parseCsv(text, 'parts.csv');
@@ -63,6 +63,23 @@ describe('parseCsv', () => {
     expect(failure(`${wideHeader}\n`)).toContain('100');
     expect(failure(`n\n${'1\n'.repeat(50_001)}`)).toContain('50,000');
     expect(failure(`n\n${'a'.repeat(10 * 1024 * 1024)}\n`)).toContain('10 MB');
+  });
+
+  it('enforces exactly the limits it exports', () => {
+    const accepts = (text: string) => parseCsv(text, 'limits.csv').ok;
+
+    const header = (columns: number) => Array.from({ length: columns }, (_, index) => `c${index}`).join(',');
+    expect(accepts(`${header(UPLOAD_LIMITS.columns)}\n`)).toBe(true);
+    expect(accepts(`${header(UPLOAD_LIMITS.columns + 1)}\n`)).toBe(false);
+
+    const rows = (count: number) => `n\n${'1\n'.repeat(count)}`;
+    expect(accepts(rows(UPLOAD_LIMITS.rows))).toBe(true);
+    expect(accepts(rows(UPLOAD_LIMITS.rows + 1))).toBe(false);
+
+    const ofBytes = (count: number) => `n\n${'x'.repeat(count - 2)}`;
+    const maxBytes = UPLOAD_LIMITS.megabytes * 1024 * 1024;
+    expect(accepts(ofBytes(maxBytes))).toBe(true);
+    expect(accepts(ofBytes(maxBytes + 1))).toBe(false);
   });
 
   it('returns an error instead of throwing for a file with no content', () => {

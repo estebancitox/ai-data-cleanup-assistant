@@ -20,7 +20,7 @@ export function baseName(fileName: string): string {
 /** `generatedAt` is the time of the export, ISO 8601; the caller owns the clock. */
 export function buildExport(
   file: LoadedFile,
-  snapshot: AnalysisSnapshot,
+  snapshot: Pick<AnalysisSnapshot, 'analysis' | 'ai'>,
   decisions: Decisions,
   generatedAt: string,
 ): { cleanedCsv: ExportFile; changeLog: ExportFile; summary: ChangeLog['summary'] } {

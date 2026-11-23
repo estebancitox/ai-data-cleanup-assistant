@@ -1,6 +1,33 @@
 # SPEC: AI Data Cleanup Assistant
 
-Version 1.2 · 2026-11-23 · Status: contract for the one-day build
+Version 1.3 · 2026-11-23 · Status: contract for the one-day build
+
+Changes in 1.3. Decisions of the owner for session 4 (integration) and readings already logged
+in `DECISIONS.md` §10:
+
+- §2: S6 is CUT, because it needs a fifth input to `applyDecisions` and an exception to
+  invariant 8. C5 is CUT (F36).
+- §4.2: `analyze` exports the near-duplicate threshold and the pair scorer; `csv` exports the
+  upload limits; `contract`, `adjudicate` and `src/ai` list what the code exports; the routes
+  row gains the recording route (F21, F26, F31, F32).
+- §4.3: the routes table gains `GET /api/ai/recording`, as built (F21, F29).
+- §4.4, invariant 5, and §5.1: the round trip holds for every dataset `parseCsv` can return; a
+  single-column file cannot hold an empty cell.
+- §5.4, R5: inner spaces and tabs are removed and a line break inside a cell never is; what
+  R4 and R5 each mean by a space.
+- §5.5: C5 is CUT.
+- §6.1: sample-row cells are cut at 80 characters; a request that still does not fit (F25).
+- §6.3: the readings behind the table: observed values, canonical groups, dependency rows,
+  format validators and date ranges (F22, F23, F24, F26).
+- §6.4: the order of the cases, the labels, `unsure`, the length of the sentence and who does
+  the batching (F30, F32); what the page does with an issue the model dismissed.
+- §6.6: how a recording reaches the page, and the order in which the mode is decided (F21, F32).
+- §6.7: what counts against the request limit, and the limit against the batches of §6.4
+  (F26, F33).
+- §7: three states and no export screen; a file that is not UTF-8; Confirm and Dismiss for a
+  flag; what a bulk button acts on; S2 as built; the one-step undo; the note on a removed row;
+  the bar's warning about two downloads that do not match.
+- §8.3: the exit codes of the AI runs and what `eval:heldout` writes (F26).
 
 Changes in 1.2. Each one closes a finding of the independent review (`DECISIONS.md` §10):
 
@@ -71,8 +98,8 @@ MUST item meets its done criteria. CUT items are not built; they are listed in `
 | S2 | SHOULD | Bulk action "accept all high-confidence fixes" |
 | S3 | SHOULD | "What is sent to the AI" panel, shown before the request is made |
 | S4 | SHOULD | Public deployment with the limits of §6.7 |
-| S5 | SHOULD | Detectors R6 (date format), R7 (shape), C5 (format validators) |
-| S6 | SHOULD | Edit the proposed value by hand; remove a flagged row by hand |
+| S5 | SHOULD | Detectors R6 (date format) and R7 (shape). C5 (format validators) is CUT |
+| S6 | CUT | Edit the proposed value by hand; remove a flagged row by hand. It needs a fifth input to `applyDecisions` and an exception to invariant 8 |
 | S7 | SHOULD | Flag cells that a spreadsheet would run as a formula (§9.3) |
 
 ## 3. Vocabulary
@@ -103,14 +130,14 @@ Issue types are the four categories of the brief: `duplicate`, `inconsistent`, `
 
 | Module | Interface (what callers must know) | Hides | Depends on |
 |---|---|---|---|
-| `src/core/csv` | `parseCsv`, `serializeCsv` | CSV dialect, limits, row numbering | papaparse |
+| `src/core/csv` | `parseCsv`, `serializeCsv`, and the limits of §5.1 as `UPLOAD_LIMITS`, for the text next to the upload control | CSV dialect, how the limits are enforced, row numbering | papaparse |
 | `src/core/profile` | `profileDataset`, and the value rules `comparisonKey`, `isMissing`, `missingReason`, `readNumber`, `plainNumberText`, `readDate`, `isDateText`, `shapeOf`, `quantile` | how each of them is computed: the normalisation behind the key, the placeholder lists, type inference, the quantile method, column heuristics | none |
-| `src/core/contract` | `ContractSchema`, `buildContractRequest`, `verifyContract` | what is sent to the model, every support threshold, how the canonical spelling is chosen | profile |
-| `src/core/analyze` | `analyze`, `groupIssues` | every detector, their order, precedence, similarity, thresholds, issue ids | profile, contract |
-| `src/core/adjudicate` (S1) | `selectCases`, `applyVerdicts` | which issues are sent, the case format, what a verdict changes | analyze |
+| `src/core/contract` | `ContractSchema`, `ContractRequestSchema`, `buildContractRequest`, `verifyContract`; for `analyze` only, so that verification and the C detectors share one definition: `dependencyGroups`, `observedValues`, `rangePosition` | what is sent to the model, every support threshold, how the canonical spelling is chosen | profile |
+| `src/core/analyze` | `analyze`, `groupIssues`; for the eval, `NEAR_DUPLICATE_MIN_SIMILARITY`; for `adjudicate` and the eval, `scoreCandidatePairs` in `similarity.ts` | every detector, their order, precedence, similarity, thresholds, issue ids | profile, contract |
+| `src/core/adjudicate` (S1) | `selectCases`, `applyVerdicts`, `AdjudicationRequestSchema`, and the numbers of §6.4 as `MAX_CASES`, `CASES_PER_REQUEST` and `CONCURRENT_REQUESTS`, which the page needs to batch its requests | which issues are sent, their order, the case format, what a verdict changes | analyze, profile |
 | `src/core/apply` | `applyDecisions` | order of application, conflict rules, the change-log format | csv |
-| `src/ai` (server only) | `inferContract`, `adjudicate`, `aiStatus` | SDK, model id, prompts, retry policy, recordings | contract schema |
-| `src/app/api/ai/*` | `POST /api/ai/contract`, `POST /api/ai/adjudicate`, `GET /api/ai/status` | body limits, rate limit, error mapping | `src/ai` |
+| `src/ai` (server only) | `inferContract`, `adjudicate`, `aiStatus`; for the evaluation, `adjudicateAll`; for the recording route and the evaluation, `findRecording` and `writeRecording` | SDK, model id, prompts, retry policy, the recording format | contract schema |
+| `src/app/api/ai/*` | `POST /api/ai/contract`, `POST /api/ai/adjudicate`, `GET /api/ai/status`, `GET /api/ai/recording` | body limits, rate limit, error mapping | `src/ai` |
 | `src/app`, `src/components` | the page | UI state: decisions, filters, progress | core |
 | `evals` | `npm run eval`, `eval:recorded`, `eval:live`, `eval:heldout` | scoring rules, report format | core, `src/ai` |
 
@@ -281,6 +308,11 @@ HTTP routes (JSON in, JSON out):
 | `GET /api/ai/status` | none | `{ live: boolean, model: string \| null }` | none |
 | `POST /api/ai/contract` | `ContractRequest` | `{ contract: Contract, model: string }` | 400 invalid body, 413 too large, 429 rate limit, 502 `ai_unavailable` |
 | `POST /api/ai/adjudicate` (S1) | `{ cases: Case[] }`, at most 10 | `{ verdicts: Verdict[], model: string }` | same |
+| `GET /api/ai/recording?sha256=<hex>` | none | `{ contract: Contract, verdicts: Verdict[], model: string, recordedAt: string }` | 400 unless `sha256` is 64 hexadecimal characters, 404 no recording for that hash |
+
+The recording route is how a recording reaches the page (§6.6). It calls no model, so it is
+outside the rate limit. `verdicts` is empty for a recording made without adjudication. The two
+`GET` routes are answered on every request and never from a cache.
 
 Prompts and the model id stay on the server. The routes do not accept prompt text.
 
@@ -292,8 +324,9 @@ Prompts and the model id stay on the server. The routes do not accept prompt tex
 3. `at most one issue per cell`: no two issues share the same row id and column (§5.6).
 4. `a kept row is never deleted`: no `keepRowId` is also the `rowId` of a `delete-row` fix,
    and no row is deleted by two issues.
-5. `csv round trip`: `parseCsv(serializeCsv(d))` gives back `d`, including values with commas,
-   quotes, line breaks and leading or trailing spaces.
+5. `csv round trip`: for every dataset `d` that `parseCsv` can return, `parseCsv(serializeCsv(d))`
+   gives back `d`, including values with commas, quotes, line breaks and leading or trailing
+   spaces. A single-column dataset with an empty cell is not such a dataset (§5.1).
 6. `issue ids are stable`: every issue from `analyze(d)` appears with the same id in
    `analyze(d, contract)` unless a contract-driven issue took over its cell (§5.6).
 7. `analysis is deterministic`: two calls with the same inputs return deeply equal results.
@@ -318,8 +351,10 @@ scaffolded.
 - UTF-8 text; a byte-order mark is removed. The delimiter is detected. The first row is the header.
 - Limits: 10 MB, 50,000 data rows, 100 columns. Over a limit: `ok: false` with a message that
   states the limit.
-- Empty lines are skipped. An empty header name becomes `column_N`. Duplicate header names:
-  `ok: false`.
+- Empty lines are skipped. In a single-column file an empty line and an empty cell cannot be
+  told apart, so a row whose only cell is empty is skipped too: such a file cannot hold an
+  empty cell.
+- An empty header name becomes `column_N`. Duplicate header names: `ok: false`.
 - A row with fewer fields than the header is padded with empty strings and reported in
   `warnings`. A row with more fields than the header: `ok: false`, naming the first such row,
   because dropping the extra values would lose data silently.
@@ -372,10 +407,17 @@ a column or the row similarity.
 | R2 | `near-duplicate` | MUST | Candidate pairs with similarity of 0.90 or more that are not exact duplicates | duplicate | delete one row, keep the more complete one (fewer missing cells; tie: lower row id) | low |
 | R3 | `empty`, `placeholder` | MUST | Empty cells; placeholder cells | missing | empty: none. placeholder: set to empty | high |
 | R4 | `whitespace`, `case-variant` | MUST | Leading or trailing whitespace in any column; repeated inner spaces or tabs outside free text; a line break inside a cell is never changed; in categorical columns, values with the same key written differently | inconsistent | trimmed value; the most frequent spelling of that key (tie: first seen) | high |
-| R5 | `number-format` | MUST | In number columns, values that are numbers once currency symbols, thousands separators and inner spaces are removed | inconsistent | the plain number | high |
+| R5 | `number-format` | MUST | In number columns, values that are numbers once currency symbols, thousands separators and inner spaces or tabs are removed; a line break inside a cell is never removed | inconsistent | the plain number | high |
 | R6 | `date-format` | SHOULD | In date columns, values not in the column's dominant format | inconsistent | the same date in the dominant format (see below) | high or medium |
 | R7 | `shape` | SHOULD | In columns where one shape covers 90% or more of non-missing values, values with another shape | inconsistent | none | low |
 | R8 | `outlier` | MUST | Unusual numbers in number columns that are not identifier-like (see below) | suspicious | none | low |
+
+R4 and R5 do not mean the same by a space. R4 rewrites text, so it collapses only runs of the
+space and tab characters. R5 only decides whether a value is a number, so inside the value it
+removes every white-space character that is not a line break; a no-break space, which some
+locales use as the thousands separator, is one of them. White space around the value stays
+with R4. Neither rule changes a line break inside a cell: a number split by a line break is
+not a number.
 
 R2: when a row belongs to several pairs, pairs are taken from the highest similarity down and
 a pair is skipped if it would break invariant 4.
@@ -422,7 +464,7 @@ read after the normalisation of R5.
 | C2 | `placeholder` | MUST | Cells holding a verified missing token | missing | set to empty | medium |
 | C3 | `dependency` | MUST | For a verified rule "A determines B": a B that disagrees with the clear majority for its A; a missing B where that majority exists | inconsistent; missing | the majority value | high or medium |
 | C4 | `range` | MUST | Numbers or dates outside a verified range | suspicious | none | medium |
-| C5 | `format` | SHOULD | In columns the contract marks as `email` or `url`, values that fail the validator | suspicious | none | medium |
+| C5 | `format` | CUT | In columns the contract marks as `email` or `url`, values that fail the validator | suspicious | none | medium |
 | C6 | `flagged-value` | MUST | Cells holding a value the model flagged as test data, junk or a placeholder | suspicious | none | medium |
 
 C3 in detail. Rows are grouped by the key of A (rows with A missing are left out). B is
@@ -459,9 +501,11 @@ column order are kept. Row ids in the change log are the original ones.
 - per column: name, kind, counts, flags, numeric summary, the 5 most common shapes;
 - per column, values with their counts: every distinct value when there are 200 or fewer;
   otherwise the 20 most common and 10 picked with a fixed seed. Values are cut at 80 characters;
-- 20 sample rows: the first 5 and 15 picked with a fixed seed;
+- 20 sample rows: the first 5 and 15 picked with a fixed seed. Their cells are cut at 80
+  characters too;
 - nothing else. If the request is larger than 200 KB, the per-column value cap is halved until
-  it fits, with a floor of 20.
+  it fits, with a floor of 20. A request still over 200 KB at the floor is returned as it is,
+  and the route answers 413 when it is over the body limit of §6.7.
 
 ### 6.2 Contract schema
 
@@ -503,6 +547,30 @@ the spelling to keep; code does (§6.3).
 For an accepted canonical group, the canonical value is the member that appears most often in
 the file (tie: first seen). The others are the variants.
 
+How the table is read:
+
+- Values are compared by comparison key throughout. *Observed* means held by a cell that is
+  not missing (§5.2).
+- `missingTokens`: a token the built-in rules already treat as missing in that column is
+  rejected as "already handled by a built-in rule", so that those cells stay with R3. For the
+  same reason such a value is "not in the data" for `suspiciousValues` and `canonicalGroups`.
+  There is no cap on the share of a token.
+- `canonicalGroups`: the two values that must remain are two different keys, so a group of
+  pure case or spacing variants is rejected and stays with R4. C1 only claims cells whose key
+  differs from the canonical's. A group that shares a value with an accepted group of the same
+  column is rejected. The canonical value and the variants are stored in the spelling the
+  file uses most often.
+- `dependencies`: verification and C3 use one comparison. It counts the rows where A and B are
+  both present; a verified missing token counts as missing; B is compared by key after the
+  verified canonical groups; group sizes are counted on those rows. The fix of C3 is the
+  majority value in the spelling the column uses most often.
+- Column `format`: an email is one `@`, no spaces and a dot in the domain; a url starts with
+  `http://` or `https://` and has a host. A format the data does not support is set to `none`
+  and is also listed among the rejected rules.
+- `ranges` on dates: a bound must be an unambiguous date in a layout of R6. A cell that cannot
+  be read for certain (not a date, a date that does not exist, a slash date whose two first
+  numbers could each be the month) is neither inside nor outside, and C4 does not flag it.
+
 `VerifiedContract` holds the accepted rules, each with the numbers that supported it, and the
 rejected rules, each with the reason. The UI shows both.
 
@@ -518,6 +586,26 @@ The model answers `confirm`, `dismiss` or `unsure` with one sentence per case. E
 - `dismiss`: the issue moves to a collapsed section "Dismissed by AI". It is left out of bulk
   actions and of the default counts, and the user can restore it;
 - `unsure` or no answer: nothing changes.
+
+As built:
+
+- *Strongest first*: the near-duplicate candidates, from the highest similarity down; then the
+  flagged values (R8, C4), from the one farthest from the median of its column, measured in
+  interquartile ranges. A flagged date has no numeric summary and goes last. In a file with
+  more than 60 near-duplicate candidates no flagged value is adjudicated.
+- The model sees the cases of a request under the labels "1" to "10"; issue ids stay on the
+  server. A verdict for a label that matches no case is dropped, and of two verdicts for one
+  case the first counts. A verdict for an issue that is not a near-duplicate, an outlier or a
+  range flag is ignored.
+- An `unsure` verdict is attached to its issue and changes nothing else. A case with no answer
+  gets no verdict.
+- The model's sentence is cut at 300 characters before it is stored or shown.
+- The page does the batching against the route, with the three numbers above (60, 10, 3),
+  which `src/core/adjudicate` exports. `eval:live` stops and writes no recording when any
+  adjudication request fails twice.
+- "Dismissed by AI" holds only pending issues: an issue the user already decided stays in its
+  group, with the model's sentence. An issue in that section stays in the analysis, so the
+  change log lists it as pending. The change log has no field for the verdict.
 
 A verdict never creates a fix and never changes one. This is the one place where a model
 judgment is used without a check in code, so it can only change how prominent an issue is.
@@ -537,7 +625,8 @@ judgment is used without a check in code, so it can only change how prominent an
 ### 6.6 AI modes
 
 - **live**: the server has `ANTHROPIC_API_KEY`.
-- **recorded**: the file's SHA-256 matches a recording in `fixtures/recorded/`. The recorded
+- **recorded**: the file's SHA-256 matches a recording in `fixtures/recorded/`. The page asks
+  `GET /api/ai/recording` with the hash (§4.3), because `src/ai` is server only. The recorded
   contract and verdicts are used; the UI shows "Recorded AI analysis", the model and the date.
 - **off**: rules only, with a notice that explains how to enable AI.
 
@@ -545,21 +634,36 @@ The bundled sample uses its recording by default, so the first run is instant an
 key; a "Run live" action appears when the server is live. Uploaded files use live mode when
 available. Recordings are written only by `npm run eval:live`.
 
+A file is matched by its bytes, not by how it was loaded. Its mode is decided in this order:
+the recording for its SHA-256, if there is one; live, if the server is live; otherwise off. A
+recording has `format: 2`, which adds the verdicts; a recording of format 1 is read as one
+with no verdicts.
+
 ### 6.7 Server limits
 
 Request body up to 256 KB; `max_tokens` capped; at most 10 cases per adjudication request; a
 best-effort in-memory limit of 20 AI requests per 10 minutes per IP; payloads are not logged.
 The hard limit on cost is the monthly spend limit set in the API console by the owner.
 
+The contract route and the adjudication route share the limit of 20. A request counts against
+it only after it passed the size and shape checks. A server with no key answers 502
+`ai_unavailable`. The status and recording routes call no model and are outside the limit. One
+analysis is 1 contract request and up to 6 adjudication requests (the bundled sample needs 4
+in all), so the third analysis of a file with 60 cases within 10 minutes from one address
+gets 429.
+
 ## 7. Review and export UI
 
-One page, four states: upload, analysing, review, export. Rule-based issues are shown as soon
-as they exist; AI results are added when they arrive, without losing decisions already made.
+One page, three states: upload, analysing, review. There is no export screen: the two
+downloads are in the bar of the review (§7.3). Rule-based issues are shown as soon as they
+exist; AI results are added when they arrive, without losing decisions already made.
 
 ### 7.1 Upload
 
 File picker, drag and drop, "Use sample data". Limits stated next to the control. Parse errors
-and warnings shown in plain language.
+and warnings shown in plain language. A file that is not UTF-8 is refused, with a message that
+says how to fix it: save it as "CSV UTF-8" and upload it again. Reading it anyway would put
+replacement characters into the cleaned file.
 
 ### 7.2 Analysing
 
@@ -571,13 +675,25 @@ rejected), adjudication. The AI mode is visible at all times.
 - Summary: one card per issue type with pending, accepted and rejected counts.
 - Filters: type, status, confidence, source.
 - Groups (from `groupIssues`), collapsed by default: title in plain words, number of issues,
-  source (Rule or AI), confidence, reason, "Accept all" and "Reject all".
+  source (Rule or AI), confidence, reason, and the bulk buttons: "Accept all" and "Reject all"
+  for fixes, "Confirm all" and "Dismiss all" for flags.
+- A bulk button acts on the pending issues that the filters show, never on a decision already
+  made, and its label carries that number. The last bulk action can be undone, one step only;
+  any other decision ends the undo.
+- S2, "Accept all high-confidence fixes": one button above the groups. It accepts the pending
+  issues the filters show that propose a fix with high confidence, and never a flag.
 - Inside a group, per issue: row id, the cell before and after with the difference visible,
   reason and evidence, accept and reject. Duplicates show both rows side by side with the
-  differing cells marked. Flag-only issues show the cell and the reason, and can be dismissed.
+  differing cells marked. Flag-only issues show the cell and the reason, with "Confirm"
+  (stored as accepted; it changes no cell) and "Dismiss" (stored as rejected).
+- An issue on a cell of a row that an accepted duplicate fix removes says so, and names the
+  row that is kept (§5.6).
 - A group shows its first 50 issues and a "show more" control.
 - "AI rules" panel: the verified contract and the rejected rules with their reasons.
-- A persistent bar: counts of accepted, rejected and pending, and the export actions.
+- A persistent bar: counts of accepted, rejected and pending, and the two downloads of §7.4.
+  Each download is built from the decisions as they are at the click. When the two files
+  downloaded were built from different decisions, the bar says so and asks to download both
+  again.
 
 ### 7.4 Export
 
@@ -646,7 +762,11 @@ An issue with the verdict `dismiss` is not scored as an issue; it is counted sep
 
 Each run prints a table and writes `evals/runs/<UTC timestamp>-<mode>-<dataset>.json`, which
 is committed. A run records the model id and the SHA-256 of the dataset. `npm run eval` exits
-with a non-zero code when T1 fails.
+with a non-zero code when T1 fails. `eval:recorded` and `eval:live` exit with 0 when the run
+completes, whatever T2 and T3 say, because §8.5 handles a miss by classification; they exit
+with 1 when they cannot run: no recording, no key, or a model call that failed twice.
+`eval:heldout` writes its run file with the proposed and the verified contract inside, and
+nothing under `fixtures/recorded/`.
 
 ### 8.4 Thresholds, fixed before any detector was written
 

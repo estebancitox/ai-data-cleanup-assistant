@@ -5,8 +5,8 @@
 
 import { useRef, useState } from "react";
 import type { Decisions } from "../core/types";
-import { AI_OFF, runAnalysis, type AnalysisSnapshot } from "../lib/analysis";
-import { AI_MODE_LABEL, plural } from "../lib/describe";
+import { runAnalysis, type AnalysisSnapshot } from "../lib/analysis";
+import { modeLine, plural } from "../lib/describe";
 import { loadFile, type LoadedFile, type LoadResult } from "../lib/load";
 import { loadSample } from "../lib/sample";
 import { Review } from "./Review";
@@ -68,14 +68,15 @@ export function Assistant() {
     setPhase({ name: "upload", reading: false });
   }
 
-  const ai = phase.name === "review" ? phase.snapshot.ai : AI_OFF;
+  // SPEC §6.6: the mode belongs to a file, so there is none before a file is analysed.
+  const mode = phase.name === "review" ? modeLine(phase.snapshot.run) : "AI mode: chosen when a file is loaded";
 
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-line">
         <div className="mx-auto flex w-full max-w-[1120px] items-baseline justify-between gap-4 px-6 py-3.5">
           <h1 className="text-[15px] font-semibold tracking-tight">Data cleanup assistant</h1>
-          <p className="font-mono text-[12px] text-muted">{AI_MODE_LABEL[ai.mode]}</p>
+          <p className="font-mono text-[12px] text-muted">{mode}</p>
         </div>
       </header>
 

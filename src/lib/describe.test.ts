@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { Issue, IssueGroup } from '../core/types';
-import { actionWords, describeGroup, issueLabel, plural, statusLabel } from './describe';
+import { actionWords, bulkWord, describeGroup, issueLabel, modeLine, plural, statusLabel } from './describe';
 
 const group = (detector: string, extra: Partial<IssueGroup> = {}): IssueGroup => ({
   id: detector,
@@ -119,4 +119,28 @@ it('counts in words', () => {
   expect(plural(1, 'issue')).toBe('1 issue');
   expect(plural(0, 'issue')).toBe('0 issues');
   expect(plural(50000, 'row')).toBe('50,000 rows');
+});
+
+it('two groups of one column that write different values never share a title', () => {
+  for (const type of ['inconsistent', 'missing'] as const) {
+    const titles = ['Leeds', 'York'].map((target) => describeGroup(group('dependency', { type, source: 'ai', target })).title);
+    expect(titles[0]).toContain('"Leeds"');
+    expect(titles[0]).not.toBe(titles[1]);
+  }
+});
+
+it('a bulk action on flags is reported in the words of its buttons', () => {
+  expect(bulkWord('accepted', true)).toBe('confirmed');
+  expect(bulkWord('rejected', true)).toBe('dismissed');
+  expect(bulkWord('accepted', false)).toBe('accepted');
+  expect(bulkWord('rejected', false)).toBe('rejected');
+});
+
+it('the mode line names the model, and the date for a recording', () => {
+  expect(modeLine({ mode: 'checking', model: null })).toBe('Checking for AI');
+  expect(modeLine({ mode: 'off', model: null })).toBe('AI off');
+  expect(modeLine({ mode: 'live', model: 'a-model' })).toBe('AI live · a-model');
+  expect(modeLine({ mode: 'recorded', model: 'a-model', recordedAt: '2026-01-02T03:04:05.000Z' })).toBe(
+    'Recorded AI analysis · a-model · recorded 2026-01-02 03:04 UTC',
+  );
 });

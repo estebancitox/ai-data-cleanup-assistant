@@ -89,8 +89,17 @@ beforeEach(() => {
   seam.later = null;
   saved.length = 0;
   // jsdom has no SubtleCrypto and no fetch; the sample URL answers with the fixture's bytes.
+  // These tests are about the page without AI: no recording, and a server that is not live.
   if (globalThis.crypto?.subtle === undefined) vi.stubGlobal('crypto', webcrypto);
-  vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(SAMPLE_BYTES))));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith('/api/ai/recording')) return Response.json({ error: 'not_found' }, { status: 404 });
+      if (url.startsWith('/api/ai/status')) return Response.json({ live: false, model: null });
+      return new Response(new Uint8Array(SAMPLE_BYTES));
+    }),
+  );
 });
 
 afterEach(() => {
@@ -155,7 +164,9 @@ it('export equals applyDecisions', async () => {
 
 it('decisions do not touch the analysis', async () => {
   const user = await openSample();
-  expect(seam.snapshots).toHaveLength(1);
+  // With AI off, the later snapshot only says so: the analysis is the same object.
+  await screen.findByText('AI off');
+  expect(new Set(seam.snapshots.map((snapshot) => snapshot.analysis)).size).toBe(1);
   const held = seam.snapshots[0].analysis;
   const before = structuredClone(held);
   expect(held).toEqual(sample.analysis);
@@ -181,7 +192,7 @@ it('decisions do not touch the analysis', async () => {
     } pending`,
   );
   expect(held).toEqual(before);
-  expect(seam.snapshots).toHaveLength(1);
+  expect(new Set(seam.snapshots.map((snapshot) => snapshot.analysis)).size).toBe(1);
 });
 
 it(
@@ -234,7 +245,7 @@ it('a file chosen with the picker is analysed', async () => {
   expect(screen.getByRole('status').textContent).toBe(
     `0 accepted, 0 rejected, ${expected.analysis.issues.length} pending`,
   );
-  expect(screen.getByText('AI off')).toBeTruthy();
+  expect(await screen.findByText('AI off')).toBeTruthy();
 });
 
 it('a dropped file is analysed', async () => {
@@ -246,8 +257,10 @@ it('a dropped file is analysed', async () => {
 
 it('the sample is fetched from the URL of the fixture and analysed', async () => {
   await openSample();
-  expect(fetch).toHaveBeenCalledTimes(1);
-  expect(String(vi.mocked(fetch).mock.calls[0][0])).toMatch(/listings\.dirty.*\.csv$/);
+  const urls = vi.mocked(fetch).mock.calls.map((call) => String(call[0]));
+  expect(urls[0]).toMatch(/listings\.dirty.*\.csv$/);
+  // The file itself is fetched once; the other requests ask the AI routes about it.
+  expect(urls.filter((url) => !url.startsWith('/api/ai/'))).toHaveLength(1);
   expect(screen.getByRole('heading', { name: SAMPLE_NAME })).toBeTruthy();
   expect(screen.getByRole('status').textContent).toBe(
     `0 accepted, 0 rejected, ${sample.analysis.issues.length} pending`,
@@ -333,6 +346,13 @@ it('a flag is confirmed or dismissed, and never accepted in bulk with fixes', as
   // Confirming a flag changes no cell.
   await user.click(button('Download cleaned CSV'));
   expect(saved[0].text).toBe(serializeCsv(sample.dataset));
+
+  // A bulk action on flags is reported in the words of its buttons.
+  const left = flagged.issues.length - 1;
+  await user.click(button(`Dismiss all (${left}): ${titleOf(flagged)}`));
+  const report = screen.getByText(/^Last bulk action:/);
+  expect(report.textContent).toBe(`Last bulk action: ${left} ${left === 1 ? 'issue' : 'issues'} dismissed.`);
+  expect(screen.getByRole('status').textContent).toContain(`1 accepted, ${left} rejected`);
 });
 
 it('accept all high-confidence fixes accepts those fixes, keeps decisions made by hand, and touches no flag', async () => {
@@ -538,6 +558,7 @@ it('a later snapshot keeps the decisions', async () => {
     next: (first) => ({
       analysis: { ...first.analysis, issues: [...first.analysis.issues, extra(sample.dataset)] },
       ai: first.ai,
+      run: first.run,
     }),
   };
 

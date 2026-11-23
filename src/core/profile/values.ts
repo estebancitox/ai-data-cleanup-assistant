@@ -35,14 +35,19 @@ export function isMissing(value: string, kind: ColumnKind): boolean {
 
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 const GROUPED_NUMBER = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/;
+// Any white space that is not a line break: the space, the tab, the no-break spaces.
+const INNER_SPACE = /[^\S\n\r\v\f\u2028\u2029]+/g;
 
 /**
  * The plain form of a value that is a number once currency symbols, thousands separators and
- * spaces are removed, or null. The result is cut out of the value's own text, never reprinted
- * from a parsed number, so leading zeros and decimals survive.
+ * inner spaces or tabs are removed, or null. The result is cut out of the value's own text,
+ * never reprinted from a parsed number, so leading zeros and decimals survive.
+ *
+ * White space around the value is ignored here (R4 owns it). Inside the value every white-space
+ * character goes except a line break: a number split by a line break is not a number.
  */
 export function plainNumberText(value: string): string | null {
-  const bare = value.replace(/\p{Sc}/gu, '').replace(/\s+/g, '');
+  const bare = value.trim().replace(/\p{Sc}/gu, '').replace(INNER_SPACE, '');
   if (PLAIN_NUMBER.test(bare)) return bare;
   if (GROUPED_NUMBER.test(bare)) return bare.replace(/,/g, '');
   return null;

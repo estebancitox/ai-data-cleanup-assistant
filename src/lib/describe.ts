@@ -1,7 +1,8 @@
 // The words the page uses for what the core reports: a title and a reason for each group of
 // issues (the core gives a group neither), and the names of the controls of an issue.
 
-import type { AiMode, Confidence, Issue, IssueGroup, IssueType } from '../core/types';
+import type { AiMode, Confidence, Decision, Issue, IssueGroup, IssueType } from '../core/types';
+import type { AiRun } from './analysis';
 import type { Status } from './decisions';
 
 export const TYPE_LABEL: Record<IssueType, string> = {
@@ -23,6 +24,24 @@ export const AI_MODE_LABEL: Record<AiMode, string> = {
   off: 'AI off',
   live: 'AI live',
   recorded: 'Recorded AI analysis',
+};
+
+/** Which AI produced what is on screen: the mode, and the model and date where there is one. */
+export function modeLine(run: Pick<AiRun, 'mode' | 'model' | 'recordedAt'>): string {
+  if (run.mode === 'checking') return 'Checking for AI';
+  if (run.mode === 'off') return AI_MODE_LABEL.off;
+  const model = run.model ?? 'model not reported';
+  if (run.mode === 'live') return `${AI_MODE_LABEL.live} · ${model}`;
+  const date = new Date(run.recordedAt ?? '');
+  const when = Number.isNaN(date.getTime()) ? 'date not recorded' : `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+  return `${AI_MODE_LABEL.recorded} · ${model} · recorded ${when}`;
+}
+
+/** What the model answered about an ambiguous issue (SPEC §6.4), before its sentence. */
+export const VERDICT_LABEL: Record<NonNullable<Issue['verdict']>['value'], string> = {
+  confirm: 'AI opinion: this looks like a real problem.',
+  dismiss: 'AI opinion: this is probably not a problem.',
+  unsure: 'AI opinion: not sure.',
 };
 
 export interface GroupText {
@@ -96,15 +115,22 @@ const BY_DETECTOR: Record<string, (group: IssueGroup) => GroupText> = {
     reason:
       'These cells hold a value that means the same as another one, written another way. The fix writes the spelling the file uses most.',
   }),
-  dependency: ({ column, type }) =>
+  // One group per value written, so the title names the value: two groups never share a title.
+  dependency: ({ column, type, target }) =>
     type === 'missing'
       ? {
-          title: `Empty cells in ${column} that other rows can fill`,
+          title:
+            target === undefined
+              ? `Empty cells in ${column} that other rows can fill`
+              : `Empty cells in ${column} that other rows fill with "${target}"`,
           reason:
             'These cells are empty, and other rows of the file that share a related value agree on what belongs here. The fix writes that value.',
         }
       : {
-          title: `Values in ${column} that contradict other rows`,
+          title:
+            target === undefined
+              ? `Values in ${column} that contradict other rows`
+              : `Values in ${column} where other rows say "${target}"`,
           reason:
             'In this file another column decides this one, and these cells disagree with what the other rows say. The fix writes the value the other rows share.',
         },
@@ -165,6 +191,12 @@ export function statusLabel(issue: Issue, status: Status): string {
   if (status === 'pending') return 'Pending';
   if (issue.fix === undefined) return status === 'accepted' ? 'Confirmed' : 'Dismissed';
   return status === 'accepted' ? 'Accepted' : 'Rejected';
+}
+
+/** What a bulk action did, in the words of its buttons: flags are confirmed or dismissed. */
+export function bulkWord(decision: Decision, onFlags: boolean): string {
+  if (onFlags) return decision === 'accepted' ? 'confirmed' : 'dismissed';
+  return decision;
 }
 
 /** "1 issue", "3 issues". */

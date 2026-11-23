@@ -195,6 +195,17 @@ order is revised at feature freeze using the evaluation results.
 8. Repair of rows with the wrong number of fields.
 9. Row similarity for files whose compared columns are few and all numeric, where unrelated
    rows pair up as near duplicates (finding F8).
+10. Keeping the byte-order mark of the uploaded file on export. `parseCsv` removes it and
+    `serializeCsv` writes none, so accented text that opened well in a spreadsheet may open
+    wrong after cleaning (finding F40).
+11. The model's verdict in the change log. `ChangeLog` has no field for it, so an issue that
+    the AI dismissed is listed as pending, with nothing that says why it was set aside
+    (finding F46).
+12. S6: editing a proposed value by hand and removing a flagged row by hand. It needs a fifth
+    input to `applyDecisions` and an exception to invariant 8 (finding F39; CUT in SPEC 1.3).
+13. C5, the detector for values that fail a column's `email` or `url` format. The format is
+    still verified (SPEC §6.3) and shown in the "AI rules" panel; nothing flags the cells
+    (F36; CUT in SPEC 1.3).
 
 ## 9. Stack versions
 
@@ -612,3 +623,133 @@ input and 3,380 output tokens in total.
 - C5 was cut for today by the owner at the end of the session.
 
 Resolution: recorded. Nothing was changed after this run.
+
+### Session 3: the review interface (2026-11-23), logged in session 4
+
+The findings of session 3 were only in its report. That report was not available to session
+4, so these entries are written from the code on the branch `ui` and from the plan of
+session 3. Their wording may differ from the report.
+
+**F37. A group has no title and no reason (SPEC §4.3 against §7.3).** §7.3 asks for a "title
+in plain words" and a reason per group, and `IssueGroup` carries neither. The page holds a
+table from detector id, type, source, column and target to a title and a sentence
+(`src/lib/describe.ts`), with a fallback for an id it does not know. That puts knowledge of
+the detectors in the page, which §4.2 says `analyze` hides.
+
+Resolution: logged. The cleaner fix is `groupIssues` returning both, a core and SPEC change.
+
+**F38. The upload limits were private to the core (SPEC §5.1 against §7.1).** §7.1 wants the
+limits stated next to the control, and the numbers lived only inside `src/core/csv`. Session 3
+kept a second copy in `src/lib/load.ts`, pinned to the core by a test.
+
+Resolution: resolved in session 4. `src/core/csv` exports `UPLOAD_LIMITS` (SPEC 1.3, §4.2),
+the page imports it, and the copy and its pinning test are gone; `csv.test.ts` checks that
+the module enforces exactly the limits it exports.
+
+**F39. S6 cannot be built on this core (SPEC §2, §4.3, §4.4).** A value edited by hand or a
+row removed by hand has no place in `Decisions`, and `applyDecisions` applies only
+`issue.fix`. It needs a fifth input to `applyDecisions`, and an exception to invariant 8,
+because a value typed by hand is an invented one.
+
+Resolution: S6 is CUT in SPEC 1.3 and on the cut list.
+
+**F40. A byte-order mark is not kept on export (SPEC §5.1, §7.4).** `parseCsv` removes it and
+`serializeCsv` writes none. A file with accented text that a spreadsheet opened well because
+of its mark may open wrong after cleaning.
+
+Resolution: logged, not patched; on the cut list.
+
+**F41. Who decodes the bytes (SPEC §5.1 against §4.3).** §5.1 says "UTF-8 text", but
+`parseCsv` takes a string, so the decoding and the SHA-256 of the bytes belong to the caller.
+The page decodes strictly in `src/lib/load.ts` and refuses a file that is not UTF-8, with a
+message that says how to fix it; the eval reads its files with Node. Consequence: a file
+saved as Windows-1252, which spreadsheets often write, is refused and not converted.
+
+Resolution: the refusal is in SPEC 1.3, §7.1. Conversion from other encodings is not built.
+
+**F42. Keyboard focus after a filter hides a row (SPEC §9.1).** With the status filter on
+"Pending", a decision removes the issue's row from the list, and the button that held the
+focus goes with it, so a keyboard user has to tab back into the group. A bulk action that
+empties a group does the same. Read from the code (`Review.tsx` filters with the current
+decisions); not reproduced in a browser in session 4.
+
+Resolution: logged, not fixed.
+
+### Session 4: integration (2026-11-23, from 16:31 -05)
+
+The owner's answers at the plan (16:47) replaced Gate 1 and approved SPEC 1.3, including the
+readings F30 to F33 as built.
+
+**F43. The session's criterion 2 against its criterion 9.** `npm run eval` writes a file under
+`evals/runs/` on every run, and criterion 9 asks for no change under `evals/`.
+
+Resolution: both evaluations were run with `--no-write` (`evals/run.ts`), approved by the owner.
+
+**F44. The session's criterion 3 against S1 (SPEC §6.6).** The criterion asks for "exactly the
+issues that `analyze(dataset, verifyContract(contract, dataset))` returns", and §6.6 says the
+recorded verdicts are used too.
+
+Resolution: approved reading. The test checks the same issue ids, and deep equality with
+`applyVerdicts` of that analysis and the recorded verdicts; 7 of the 144 issues of the sample
+are in "Dismissed by AI".
+
+**F45. Groups of C3 shared a title.** `groupIssues` makes one group per value written, and the
+page's title for `dependency` did not name the value: in the recorded analysis of the sample
+15 groups shared 4 titles (6, 4, 3 and 2 groups), and so did the names of their bulk buttons.
+Found by the test of criterion 3. Same root as F37.
+
+Resolution: fixed in `src/lib/describe.ts`; the title names the value, and a test pins it.
+
+**F46. What export does with an issue the AI dismissed (SPEC §6.4, §7.4).** Approved by the
+owner: `applyDecisions` gets the whole analysis, so the change log lists such an issue as
+pending. The bar's counts leave it out, and the note after a download names how many were set
+aside. An issue the user decided before the verdict arrived stays in its group. `ChangeLog`
+has no field for the verdict.
+
+Resolution: in SPEC 1.3, §6.4. The missing field is on the cut list.
+
+**F47. What R5 calls a space (SPEC §5.4).** Before 1.3 `plainNumberText` removed every
+white-space character, so a number split by a line break was joined. Now the value is trimmed
+(white space around it stays with R4) and, inside it, every white-space character except a
+line break is removed, a no-break space included. R4 keeps its literal space and tab.
+
+Resolution: approved by the owner and stated in SPEC 1.3, §5.4. Both evaluations print the
+same Overall line as before the change.
+
+**F48. The mode before a file is loaded (SPEC §7.2).** "The AI mode is visible at all times",
+but §6.6 decides the mode per file, by its hash. Before a file is analysed the header reads
+"AI mode: chosen when a file is loaded".
+
+Resolution: logged.
+
+**F49. Time of the rule-based analysis on 50,000 rows (SPEC §9.2).** 7,980 ms, the median of
+three runs (7,979 to 8,017 ms), for `analyze(dataset)` on a generated file of 50,000 rows, 12
+columns and 8.15 MB; parsing took 113 to 139 ms more. Measured in Node v22.23.2 on the owner's
+laptop with a script outside the repository: a fixed seed, an identifier, a code, a name, three
+categorical columns, a postal code that depends on the city, three number columns, a date
+column and a free-text note, with about 1% copied rows; it reported 11,896 issues. Not measured
+in a browser. The page runs the analysis on the main thread, so the tab does not respond for
+that time (cut list, item 4).
+
+Resolution: under the limit of 15 seconds. Nothing was optimised. To record in the README.
+
+**F50. The build warns about the recordings (SPEC §6.6; see F21).** `npm run build` ends with
+"Turbopack build encountered 4 warnings", all "Dynamic filesystem access causes tracing of the
+whole project", on `src/ai/recordings.ts` lines 70, 72 and 75: the recording route reads a
+directory whose path is built at run time. The build exits with 0 and the route works locally.
+
+Resolution: logged. It belongs to the serverless step that follows Gate 2 (the recordings
+inside the bundle), and `src/ai` was not open to change in this session.
+
+**F51. `src/lib` has no row in the module map (SPEC §4.2).** The page's own modules live
+there: the seam `runAnalysis`, which is where the page writes the order of the pipeline, and
+the calls to the AI routes (`src/lib/ai.ts`). §4.2 names only `src/app` and `src/components`.
+
+Resolution: logged. SPEC 1.3 was already frozen when it was noticed.
+
+**F52. Live mode was not exercised against the model.** The session ran with no API key. The
+live path (the contract request, the batches of adjudication, a 502 and its retry, "Run
+live") is covered by tests that answer the two model routes with the recorded contract and
+verdicts, never by a real call.
+
+Resolution: the owner checks it by hand with the key; the checklist is in the session report.

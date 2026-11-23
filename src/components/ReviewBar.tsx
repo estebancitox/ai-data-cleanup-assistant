@@ -2,15 +2,15 @@
 
 import type { ChangeLog, Decision } from "../core/types";
 import type { Counts } from "../lib/decisions";
-import { plural } from "../lib/describe";
+import { bulkWord, plural } from "../lib/describe";
 
 interface ReviewBarProps {
   counts: Counts;
   /** The last bulk action, while it can still be undone. */
-  lastBulk?: { count: number; decision: Decision };
+  lastBulk?: { count: number; decision: Decision; onFlags: boolean };
   onUndo: () => void;
   /** The last file downloaded, and what the export behind it did. */
-  last?: { name: string; summary: ChangeLog["summary"] };
+  last?: { name: string; summary: ChangeLog["summary"]; setAside: number };
   /** A file downloaded earlier was built from decisions that have changed since. */
   stale: boolean;
   onDownloadCsv: () => void;
@@ -34,7 +34,7 @@ export function ReviewBar({ counts, lastBulk, onUndo, last, stale, onDownloadCsv
             <p className="my-1 flex flex-wrap items-center gap-2 text-[13px]">
               <span>
                 Last bulk action: <span className="font-mono">{lastBulk.count}</span>{" "}
-                {lastBulk.count === 1 ? "issue" : "issues"} {lastBulk.decision}.
+                {lastBulk.count === 1 ? "issue" : "issues"} {bulkWord(lastBulk.decision, lastBulk.onFlags)}.
               </span>
               <button type="button" className="btn" onClick={onUndo}>
                 Undo
@@ -49,8 +49,9 @@ export function ReviewBar({ counts, lastBulk, onUndo, last, stale, onDownloadCsv
           ) : last ? (
             <p className="text-[13px] text-muted">
               Downloaded <span className="font-mono">{last.name}</span>: {plural(last.summary.cellsChanged, "cell")}{" "}
-              changed, {plural(last.summary.rowsRemoved, "row")} removed, {plural(last.summary.pending, "issue")} left
-              pending.
+              changed, {plural(last.summary.rowsRemoved, "row")} removed,{" "}
+              {plural(last.summary.pending - last.setAside, "issue")} left pending
+              {last.setAside > 0 && `, ${plural(last.setAside, "issue")} dismissed by AI`}.
             </p>
           ) : (
             <p className="text-[13px] text-muted">

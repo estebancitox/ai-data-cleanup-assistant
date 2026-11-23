@@ -13,6 +13,7 @@ import {
   countStatuses,
   decide,
   decideMany,
+  isSetAside,
   matchesFilters,
   pendingHighConfidenceFixes,
   removedRows,
@@ -22,6 +23,9 @@ import { plural } from "../lib/describe";
 import { saveFile } from "../lib/download";
 import { buildExport } from "../lib/export";
 import type { LoadedFile } from "../lib/load";
+import { AiRules } from "./AiRules";
+import { AiStatus } from "./AiStatus";
+import { DismissedByAi } from "./DismissedByAi";
 import { FileHeader } from "./FileHeader";
 import { Filters } from "./Filters";
 import { Group } from "./Group";
@@ -45,7 +49,7 @@ interface Stamp {
 interface Downloads {
   csv?: Stamp;
   log?: Stamp;
-  last?: { name: string; summary: ReturnType<typeof buildExport>["summary"] };
+  last?: { name: string; summary: ReturnType<typeof buildExport>["summary"]; setAside: number };
 }
 
 /** The last bulk action, and the decisions it replaced. */
@@ -53,6 +57,8 @@ interface LastBulk {
   before: Decisions;
   count: number;
   decision: Decision;
+  /** Every issue of the action was a flag, so it was confirmed or dismissed. */
+  onFlags: boolean;
 }
 
 /** Groups by issue type, in the order of the brief; inside a type, in the core's order. */
@@ -61,22 +67,33 @@ function byType(groups: IssueGroup[]): IssueGroup[] {
 }
 
 export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: ReviewProps) {
-  const { analysis } = snapshot;
+  const { analysis, run } = snapshot;
   const { dataset } = file;
   const [filters, setFilters] = useState(NO_FILTERS);
   const [downloads, setDownloads] = useState<Downloads>({});
+  // SPEC §6.4: the issues the user took back out of "Dismissed by AI".
+  const [restored, setRestored] = useState<ReadonlySet<string>>(new Set());
 
-  const groups = useMemo(() => byType(groupIssues(analysis.issues)), [analysis]);
+  // What the AI dismissed is set aside; everything below counts and groups the rest.
+  const setAside = analysis.issues.filter((issue) => isSetAside(issue, decisions, restored));
+  const setAsideKey = setAside.map((issue) => issue.id).join("\n");
+  const issues = useMemo(() => {
+    if (setAsideKey === "") return analysis.issues;
+    const ids = new Set(setAsideKey.split("\n"));
+    return analysis.issues.filter((issue) => !ids.has(issue.id));
+  }, [analysis, setAsideKey]);
+
+  const groups = useMemo(() => byType(groupIssues(issues)), [issues]);
   const rowsById = useMemo(() => new Map(dataset.rows.map((row) => [row.id, row])), [dataset]);
 
-  const totals = countStatuses(analysis.issues, decisions);
+  const totals = countStatuses(issues, decisions);
   const visible = groups
     .map((group) => ({ group, shown: group.issues.filter((issue) => matchesFilters(issue, filters, decisions)) }))
     .filter((entry) => entry.shown.length > 0);
   const shownIssues = visible.reduce((sum, entry) => sum + entry.shown.length, 0);
   // SPEC S2. Like every bulk action it reaches only what is pending and on screen.
   const sureFixes = pendingHighConfidenceFixes(visible.flatMap((entry) => entry.shown), decisions);
-  const removed = removedRows(analysis.issues, decisions);
+  const removed = removedRows(issues, decisions);
 
   // One step of undo, for bulk actions only: the decisions as they were before the last one.
   // Any other decision ends it. There is no history beyond this step.
@@ -87,7 +104,9 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
     onDecisions(decide(decisions, issueId, decision));
   };
   const onDecideMany = (issueIds: string[], decision: Decision) => {
-    setLastBulk({ before: decisions, count: issueIds.length, decision });
+    const ids = new Set(issueIds);
+    const onFlags = issues.filter((issue) => ids.has(issue.id)).every((issue) => issue.fix === undefined);
+    setLastBulk({ before: decisions, count: issueIds.length, decision, onFlags });
     onDecisions(decideMany(decisions, issueIds, decision));
   };
   const undoLastBulk = () => {
@@ -96,7 +115,8 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
     setLastBulk(null);
   };
 
-  // Each download is built from the decisions as they are at the click.
+  // Each download is built from the decisions as they are at the click, and from the whole
+  // analysis: an issue set aside is in the change log as pending (SPEC §6.4).
   function download(kind: "csv" | "log") {
     const built = buildExport(file, snapshot, decisions, new Date().toISOString());
     const out = kind === "csv" ? built.cleanedCsv : built.changeLog;
@@ -104,7 +124,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
     setDownloads({
       ...downloads,
       [kind]: { analysis, decisions },
-      last: { name: out.name, summary: built.summary },
+      last: { name: out.name, summary: built.summary, setAside: setAside.length },
     });
   }
 
@@ -122,15 +142,23 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
           fileName={dataset.fileName}
           rows={dataset.rows.length}
           columns={dataset.columns.length}
-          issues={analysis.issues.length}
+          issues={issues.length}
           warnings={file.warnings}
           decided={totals.accepted + totals.rejected}
           onStartOver={onStartOver}
         />
 
+        <AiStatus
+          run={run}
+          rows={dataset.rows.length}
+          ruleIssues={analysis.issues.filter((issue) => issue.source === "rule").length}
+        />
+
         <div className="mt-6">
-          <Summary byType={countByType(analysis.issues, decisions)} />
+          <Summary byType={countByType(issues, decisions)} />
         </div>
+
+        {analysis.contract && <AiRules contract={analysis.contract} />}
 
         <section aria-labelledby="issues-title" className="mt-10">
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-4">
@@ -139,9 +167,9 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
                 Issues
               </h2>
               <p className="text-[13px] text-muted">
-                {shownIssues === analysis.issues.length
-                  ? `${plural(analysis.issues.length, "issue")} in ${plural(groups.length, "group")}`
-                  : `${shownIssues} of ${plural(analysis.issues.length, "issue")} match the filters`}
+                {shownIssues === issues.length
+                  ? `${plural(issues.length, "issue")} in ${plural(groups.length, "group")}`
+                  : `${shownIssues} of ${plural(issues.length, "issue")} match the filters`}
               </p>
             </div>
             <Filters filters={filters} onChange={setFilters} />
@@ -179,10 +207,17 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
 
           {visible.length === 0 && (
             <p className="border-t border-line py-8 text-muted">
-              {analysis.issues.length === 0
-                ? "No issues were found in this file."
-                : "No issue matches these filters."}
+              {issues.length === 0 ? "No issues were found in this file." : "No issue matches these filters."}
             </p>
+          )}
+
+          {setAside.length > 0 && (
+            <DismissedByAi
+              issues={setAside}
+              columns={dataset.columns}
+              rowsById={rowsById}
+              onRestore={(issueId) => setRestored(new Set([...restored, issueId]))}
+            />
           )}
         </section>
       </main>

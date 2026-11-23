@@ -3,7 +3,7 @@
 
 import type { Decision, Issue, Row } from "../core/types";
 import type { Status } from "../lib/decisions";
-import { actionWords, issueLabel, statusLabel } from "../lib/describe";
+import { VERDICT_LABEL, actionWords, issueLabel, statusLabel } from "../lib/describe";
 import { diffValues, unchanged } from "../lib/diff";
 import { CellValue } from "./CellValue";
 import { DuplicatePair } from "./DuplicatePair";
@@ -17,11 +17,13 @@ interface IssueRowProps {
   removedRows: Map<number, number>;
   /** `null` returns the issue to pending. */
   onDecide: (issueId: string, decision: Decision | null) => void;
+  /** Given for an issue in "Dismissed by AI": the row offers "Restore" in place of a decision. */
+  onRestore?: () => void;
 }
 
 const LABEL = "text-[12px] text-muted";
 
-export function IssueRow({ issue, status, columns, rowsById, removedRows, onDecide }: IssueRowProps) {
+export function IssueRow({ issue, status, columns, rowsById, removedRows, onDecide, onRestore }: IssueRowProps) {
   const words = actionWords(issue);
   const label = issueLabel(issue);
   const { fix } = issue;
@@ -52,6 +54,11 @@ export function IssueRow({ issue, status, columns, rowsById, removedRows, onDeci
           )}
           <p className="mt-2 max-w-[75ch]">{issue.reason}</p>
           {issue.evidence !== undefined && <p className="max-w-[75ch] text-[13px] text-muted">{issue.evidence}</p>}
+          {issue.verdict !== undefined && (
+            <p className="mt-2 max-w-[75ch] border-l-2 border-line pl-3 text-[13px]">
+              <span className="font-medium">{VERDICT_LABEL[issue.verdict.value]}</span> {issue.verdict.reason}
+            </p>
+          )}
           {keptInstead !== undefined && (
             <p className="mt-2 max-w-[75ch] border-l-2 border-accent pl-3 text-[13px]">
               Row <span className="font-mono">{issue.rowIds[0]}</span> is removed by a duplicate fix you accepted (row{" "}
@@ -60,27 +67,34 @@ export function IssueRow({ issue, status, columns, rowsById, removedRows, onDeci
           )}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <p className="w-20 text-right text-[13px] font-medium">{statusLabel(issue, status)}</p>
-          <button
-            type="button"
-            className="btn"
-            aria-pressed={status === "accepted"}
-            aria-label={`${words.accept} ${words.noun}: ${label}`}
-            onClick={() => toggle("accepted")}
-          >
-            {words.accept}
+        {onRestore !== undefined && (
+          <button type="button" className="btn shrink-0" aria-label={`Restore: ${label}`} onClick={onRestore}>
+            Restore
           </button>
-          <button
-            type="button"
-            className="btn"
-            aria-pressed={status === "rejected"}
-            aria-label={`${words.reject} ${words.noun}: ${label}`}
-            onClick={() => toggle("rejected")}
-          >
-            {words.reject}
-          </button>
-        </div>
+        )}
+        {onRestore === undefined && (
+          <div className="flex shrink-0 items-center gap-2">
+            <p className="w-20 text-right text-[13px] font-medium">{statusLabel(issue, status)}</p>
+            <button
+              type="button"
+              className="btn"
+              aria-pressed={status === "accepted"}
+              aria-label={`${words.accept} ${words.noun}: ${label}`}
+              onClick={() => toggle("accepted")}
+            >
+              {words.accept}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              aria-pressed={status === "rejected"}
+              aria-label={`${words.reject} ${words.noun}: ${label}`}
+              onClick={() => toggle("rejected")}
+            >
+              {words.reject}
+            </button>
+          </div>
+        )}
       </div>
 
       {kept && removed && (

@@ -30,6 +30,17 @@ describe('value rules', () => {
     expect(plainNumberText('12 mm')).toBeNull();
   });
 
+  it('removes inner spaces and tabs from a number, and never a line break', () => {
+    expect(plainNumberText('1\t250')).toBe('1250');
+    expect(plainNumberText('1\u00a0250')).toBe('1250');
+    // A number split by a line break is not joined.
+    expect(plainNumberText('1\n250')).toBeNull();
+    expect(plainNumberText('1\r\n250')).toBeNull();
+    expect(readNumber('$ 1\n250')).toBeNull();
+    // White space around the value, a line break included, is left to R4.
+    expect(plainNumberText(' 12\n')).toBe('12');
+  });
+
   it('recognises the date formats of R6', () => {
     for (const text of ['2024-03-05', '2024/03/05', '03/05/2024', '25/12/2024', 'Mar 5, 2024', '5 Mar 2024']) {
       expect(isDateText(text)).toBe(true);

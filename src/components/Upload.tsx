@@ -2,7 +2,7 @@
 // and the reason a file was refused, in plain language.
 
 import { useState, type DragEvent } from "react";
-import { UPLOAD_LIMITS } from "../lib/load";
+import { UPLOAD_LIMITS } from "../core/csv";
 
 interface UploadProps {
   /** A file is being read. */

@@ -61,6 +61,15 @@ it('csv round trip', () => {
     const again = parseCsv(serializeCsv(dataset), dataset.fileName);
     expect(again).toEqual({ ok: true, dataset, warnings: [] });
   }
+
+  // SPEC §5.1: a single-column file cannot hold an empty cell, because an empty line and an
+  // empty cell cannot be told apart there. The row is skipped, so `parseCsv` never returns
+  // such a dataset, and what it does return goes round.
+  const single = parseCsv('name\nhub\n\nrail\n', 'single.csv');
+  expect(single).toEqual({ ok: true, dataset: table(['name'], [['hub'], ['rail']], 'single.csv'), warnings: [] });
+  expect(parseCsv(serializeCsv(table(['name'], [['hub'], ['rail']], 'single.csv')), 'single.csv')).toEqual(single);
+  const withEmptyCell = table(['name'], [['hub'], [''], ['rail']], 'single.csv');
+  expect(parseCsv(serializeCsv(withEmptyCell), 'single.csv')).toEqual(single);
 });
 
 it('analysis is deterministic', () => {

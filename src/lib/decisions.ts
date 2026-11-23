@@ -24,6 +24,15 @@ export function decideMany(decisions: Decisions, issueIds: string[], decision: D
   return next;
 }
 
+/**
+ * SPEC §6.4: an issue the model dismissed is set aside, out of the groups, the bulk actions and
+ * the counts, while it is pending and the user has not restored it. An issue the user already
+ * decided stays in its group.
+ */
+export function isSetAside(issue: Issue, decisions: Decisions, restored: ReadonlySet<string>): boolean {
+  return issue.verdict?.value === 'dismiss' && decisions[issue.id] === undefined && !restored.has(issue.id);
+}
+
 export interface Counts {
   pending: number;
   accepted: number;

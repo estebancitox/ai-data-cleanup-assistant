@@ -3,9 +3,12 @@
 import Papa from 'papaparse';
 import type { Dataset, Row } from '../types';
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const MAX_ROWS = 50_000;
-const MAX_COLUMNS = 100;
+/** The limits of SPEC §5.1. Exported so that the page can state them next to the upload control. */
+export const UPLOAD_LIMITS = { megabytes: 10, rows: 50_000, columns: 100 } as const;
+
+const MAX_BYTES = UPLOAD_LIMITS.megabytes * 1024 * 1024;
+const MAX_ROWS = UPLOAD_LIMITS.rows;
+const MAX_COLUMNS = UPLOAD_LIMITS.columns;
 
 export type ParseResult =
   | { ok: true; dataset: Dataset; warnings: string[] }
@@ -35,7 +38,7 @@ export function parseCsv(text: string, fileName: string): ParseResult {
 
 function parse(text: string, fileName: string): ParseResult {
   if (utf8Bytes(text) > MAX_BYTES) {
-    return { ok: false, error: 'The file is larger than the limit of 10 MB.' };
+    return { ok: false, error: `The file is larger than the limit of ${UPLOAD_LIMITS.megabytes} MB.` };
   }
   const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   const parsed = Papa.parse<string[]>(body, { header: false, skipEmptyLines: true });

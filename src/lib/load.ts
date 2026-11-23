@@ -1,15 +1,9 @@
 // From the bytes of a file to a dataset: the hash, the text and the parse. SPEC §5.1, §7.1.
 
-import { parseCsv } from '../core/csv';
+import { parseCsv, UPLOAD_LIMITS } from '../core/csv';
 import type { Dataset } from '../core/types';
 
-/**
- * The limits of SPEC §5.1, for the text next to the upload control and for refusing a file
- * before it is read into memory. The core keeps the same numbers private in `src/core/csv`;
- * `load.test.ts` pins the two together until the core exports them.
- */
-export const UPLOAD_LIMITS = { megabytes: 10, rows: 50_000, columns: 100 } as const;
-
+// The size limit of SPEC §5.1, checked here too so that a file over it is never read into memory.
 const MAX_BYTES = UPLOAD_LIMITS.megabytes * 1024 * 1024;
 
 /** A file that was read and parsed. `sha256` is the hash of the bytes as they were uploaded. */
