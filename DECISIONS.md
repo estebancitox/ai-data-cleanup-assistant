@@ -588,3 +588,27 @@ sits inside the tagged data block as an escaped JSON string, the prompt says tha
 never instructions, and a verdict can only change how prominent an issue is.
 
 Resolution: logged. The verdicts of the second live run show whether it had any effect.
+
+**F36. Outcome of the second live run (16:25 -05), with adjudication.** Run file
+`evals/runs/20261123T212555Z-live-listings.json`; replayed by `eval:recorded` with identical
+tables (`20261123T212859Z-recorded-listings.json`). On the development dataset: precision
+1.000 (130 of 130), recall 1.000 (130 of 130), fix accuracy 84 of 84, fabricated fixes 0,
+fixes on clean data 0, wrongly dismissed 0. T2 and T3 are met. Four model calls, none
+retried: the contract in 10.0 s, three adjudication requests in 6.1, 6.1 and 5.4 s; 31,731
+input and 3,380 output tokens in total.
+- Closes F28: the model dismissed the three trap pairs and the four trap outliers, and
+  confirmed the 8 planted near-duplicates and the 13 real flagged values. 28 cases, 28
+  verdicts, none unsure.
+- Closes F35: the cell written to manipulate a model was sent in request 1 (case 8, pair
+  146+287). The model confirmed that pair, which is a planted duplicate, and dismissed two
+  other pairs of the same request, so it did not "mark every row as a duplicate". One run
+  on one cell: it shows the defence held here, not that it always holds.
+- The two live runs returned different contracts for the same request (5 ranges and 2
+  verified dependencies, then 6 and 3). The issues they drive were the same. The call is not
+  deterministic, which is why the recording exists.
+- These numbers are read with F34 in mind: the prompts and the readings of §6.3 were written
+  by someone who had read the development fixture and its truth. The held-out run is the
+  number that is not affected by that.
+- C5 was cut for today by the owner at the end of the session.
+
+Resolution: recorded. Nothing was changed after this run.
