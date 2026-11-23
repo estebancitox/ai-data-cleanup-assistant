@@ -1,0 +1,80 @@
+// Finds every issue in a dataset. SPEC §5.4 and §5.6.
+
+import { profileDataset } from '../profile';
+import type { Analysis, Confidence, Dataset, Issue, IssueGroup, VerifiedContract } from '../types';
+import { detectDateFormat } from './detectors/date-format';
+import { detectDuplicates } from './detectors/duplicates';
+import { detectMissing } from './detectors/missing';
+import { detectNumberFormat } from './detectors/number-format';
+import { detectOutliers } from './detectors/outlier';
+import { detectShape } from './detectors/shape';
+import { detectSpelling } from './detectors/spelling';
+import { issueId, onePerCell } from './precedence';
+
+/**
+ * Finds every issue in the dataset. Without a contract it runs the rule detectors only. With
+ * a verified contract it also runs the detectors that the contract drives. Pure and
+ * deterministic: the same inputs give the same issues with the same ids, so decisions made
+ * on a rules-only result stay valid after the contract arrives.
+ */
+export function analyze(dataset: Dataset, contract?: VerifiedContract): Analysis {
+  const profile = profileDataset(dataset);
+  // Cell detectors in the precedence order of §5.6: R3, R5, R6, R4, R7, R8. The detectors a
+  // contract drives are not built yet; they take their places in this list.
+  const cellIssues = onePerCell([
+    detectMissing(dataset, profile),
+    detectNumberFormat(dataset, profile),
+    detectDateFormat(dataset, profile),
+    detectSpelling(dataset, profile),
+    detectShape(dataset, profile),
+    detectOutliers(dataset, profile),
+  ]);
+  const rowIssues = detectDuplicates(dataset, profile);
+
+  const columnPosition = new Map(dataset.columns.map((name, index) => [name, index]));
+  const position = (issue: Issue) => (issue.column === undefined ? -1 : (columnPosition.get(issue.column) ?? 0));
+  const issues: Issue[] = [...rowIssues, ...cellIssues]
+    .map((candidate) => ({ id: issueId(candidate), ...candidate }))
+    .sort(
+      (a, b) =>
+        Math.min(...a.rowIds) - Math.min(...b.rowIds) ||
+        position(a) - position(b) ||
+        Math.max(...a.rowIds) - Math.max(...b.rowIds),
+    );
+
+  return contract ? { issues, profile, contract } : { issues, profile };
+}
+
+// Detectors whose fix rewrites each cell's own value: their targets differ cell by cell, so
+// the target is not part of the group.
+const REFORMATTING_DETECTORS = new Set(['whitespace', 'number-format', 'date-format']);
+const CONFIDENCE_RANK: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
+
+/** Groups issues for review and bulk decisions: same type, detector, column and target value. */
+export function groupIssues(issues: Issue[]): IssueGroup[] {
+  const groups = new Map<string, IssueGroup>();
+  for (const issue of issues) {
+    const target =
+      issue.fix?.kind === 'set-cell' && !REFORMATTING_DETECTORS.has(issue.detector) ? issue.fix.to : undefined;
+    const id = [issue.type, issue.detector, issue.column ?? '', target === undefined ? '' : `=${target}`].join('|');
+    const group = groups.get(id);
+    if (!group) {
+      groups.set(id, {
+        id,
+        type: issue.type,
+        detector: issue.detector,
+        source: issue.source,
+        ...(issue.column === undefined ? {} : { column: issue.column }),
+        ...(target === undefined ? {} : { target }),
+        confidence: issue.confidence,
+        issues: [issue],
+      });
+      continue;
+    }
+    group.issues.push(issue);
+    if (CONFIDENCE_RANK[issue.confidence] < CONFIDENCE_RANK[group.confidence]) {
+      group.confidence = issue.confidence;
+    }
+  }
+  return [...groups.values()];
+}

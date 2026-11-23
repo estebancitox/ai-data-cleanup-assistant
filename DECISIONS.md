@@ -198,7 +198,116 @@ order is revised at feature freeze using the evaluation results.
 
 Filled in when the project is scaffolded.
 
+Scaffolded on 2026-11-23 with Node v22.23.2 and npm 12.2.0. Installed versions, from
+`npm ls --depth=0`:
+
+| Package | Version | Package | Version |
+|---|---|---|---|
+| next | 16.4.6 | papaparse | 5.7.1 |
+| react, react-dom | 19.3.0 | @types/papaparse | 5.5.2 |
+| typescript | 5.9.3 | zod | 4.6.7 |
+| tailwindcss, @tailwindcss/turbopack | 4.3.3 | vitest | 5.1.1 |
+| eslint | 9.39.5 | tsx | 4.23.15 |
+| eslint-config-next | 16.4.6 | @types/node | 22.20.5 |
+| @types/react, @types/react-dom | 19.3.0 | | |
+
+How it was scaffolded:
+
+- `create-next-app@16.4.6` refuses a directory that holds files outside its allow-list
+  (`helpers/is-folder-empty.ts`), and this repository already held the contract. The scaffold
+  was generated in an empty temporary directory and copied in with
+  `rsync -a --ignore-existing`; no file name collided. Its `README.md` was not copied.
+- Flags: `--ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
+  --skip-install --disable-git --no-react-compiler --no-cache-components --no-agents-md
+  --no-agent-feedback --yes`.
+- `@types/node` was raised from the scaffold's `^20` to `^22`: vitest 5.1.1 declares the peer
+  range `^22.0.0 || >=24.0.0` and npm refused to install it otherwise.
+- `typecheck` is `next typegen && tsc --noEmit`: the scaffold's `layout.tsx` uses the global
+  type `LayoutProps`, which only exists after the route types are generated.
+- `.gitignore` adds `.claude/settings.local.json` and keeps `.env.example` trackable.
+- The Vitest config is `vitest.config.mts` with the node environment and no plugins. The
+  packages of the Next.js Vitest guide (jsdom, React plugin, tsconfig-paths) are for component
+  tests and were not installed.
+- npm reported that eslint 9.39.5 is no longer supported (it is the version the scaffold
+  pins) and that it blocked the install scripts of esbuild and fsevents. Tests and the eval
+  run without them.
+
 ## 10. Findings
 
 Problems found in the SPEC or in the fixtures during the build, appended here. Each entry:
 date and time, what was found, where, and what was decided between sessions.
+
+### Session 1 (2026-11-23, 13:52 to 14:12 -05)
+
+Each entry: what was found, where, what the code does now, and what is still to decide.
+
+**F1. `applyDecisions` cannot build the change log with its three parameters (SPEC §4.3, §7.4).**
+The `ChangeLog` needs `generatedAt`, `file.sha256` and `ai.mode/model`, and the core may not
+use a clock. Approved at gate 1: a fourth parameter `meta: ChangeLogMeta` supplied by the
+caller. To do between sessions: update the signature in §4.3.
+
+**F2. `Profile`, `IssueGroup` and `VerifiedContract` are named but never defined (SPEC §4.3,
+§5.2, §6.3).** Their shapes are now in `src/core/types.ts`, as approved at gate 1.
+`VerifiedContract` is provisional: session 2 owns it and may extend it.
+
+**F3. `profile` cannot hide the comparison key (SPEC §4.2).** `analyze` (R2, R4, R5), contract
+verification (§6.3) and C3 need the key, the missing test and the number reading.
+`src/core/profile` exports `comparisonKey`, `isMissing`, `missingReason`, `readNumber`,
+`plainNumberText`, `isDateText` and `quantile` next to `profileDataset`. The constants still
+live only in that module.
+
+**F4. Definitions left open in §5.2 and §5.3.** Readings applied:
+- The kind of a column is decided over the values that are neither empty nor a placeholder of
+  either list; soft placeholders then count as missing only when the kind is number or date.
+  As written, kind depends on "non-missing" and "missing" depends on kind.
+- Distinct ratio = distinct keys / non-missing cells. A cell of only whitespace is empty.
+- Cell similarity: a column is skipped when either cell is missing, checked before "keys are
+  equal". "Both are numbers" is decided per value, not per column kind.
+- Candidate sort: rows missing the sort column are left out; ties break by row position.
+- Thousands separators must sit in groups of three: `1,5` is not read as a number.
+- Not built this session: the contract-dependent clauses of §5.2 (soft placeholders "when the
+  contract says so", the role `identifier`). They change the compared columns of R2, so they
+  conflict with invariant 6 as written. To decide before session 2.
+
+**F5. `groupIssues` (SPEC §4.3).** Grouping by "same target value" gives one group per cell
+for fixes that reformat each cell's own value. Approved at gate 1: the target is part of the
+group only when the fix writes a shared value; `whitespace`, `number-format` and
+`date-format` group by type, detector and column.
+
+**F6. R2 differs from the reference of §8.4 by one trap pair.** Measured with `npm run eval`:
+14 of 14 planted pairs (6 exact at 1.000, 8 near from 0.9315 to 0.9683), 3 of 4 trap pairs.
+Trap T07 (rows 314 and 350) scores 0.89990 and falls 0.0001 under the threshold; the next
+pair scores 0.859 against the reference's 0.860. Most likely cause, from a throwaway script
+that recomputed the three scores under seven readings: the reference counted placeholder
+cells as values when it computed the distinct ratios that weight the columns. That reading
+gives 0.90021, 0.9317, 0.9684 and 0.8596, which round to the four reference numbers; §5.2
+says a placeholder cell is missing, and the code follows §5.2. Nothing was tuned. The
+reference script is not in the repository, so this is the best explanation, not a proof.
+
+**F7. R8 flags valid postal codes (SPEC §5.2, §5.4). To decide before session 2.** `zip` is
+a number column by §5.2 and its header is not identifier-like, so R8 runs on it: 36 of the 40
+false positives of `outlier` are valid values of `zip` (the other 4 are the two legit-outlier
+trap rows). Rules-only precision with R6 and R7 in place is 0.709 overall and 0.23 for
+`outlier` (0.667 and 0.27 before them); T1 is not affected, T2 (precision 0.90 or more) is
+at risk unless the contract or the adjudication removes them. Classification proposed: rule definition. Options: R8 skips number columns
+whose values are codes (same digit count, whole numbers); or R8 runs only on columns the
+contract marks as `measure`; or leave it to S1. Not changed in code.
+
+**F8. R2 on files with few, numeric columns (SPEC §5.3).** Two numbers 5% apart have a
+similarity of 0.95, so in a table whose compared columns are all numeric, unrelated rows
+pair up as near duplicates. Seen in a unit test with one numeric column (12 pairs among 24
+evenly spaced values), not in the fixtures. Not changed in code.
+
+**F9. R7 takes cells from R8 (SPEC §5.6).** R7 runs before R8, so a number with a different
+digit count from the rest of its column is reported as `shape`, type `inconsistent`, and
+not as `outlier`, type `suspicious`. In the sample, 5 planted `suspicious` errors are
+located by an `inconsistent` issue for this reason (the confusion table of the eval). The
+code follows §5.6. To decide: whether the order should be R8 before R7, or R7 should skip
+number columns.
+
+**F10. R6 details the SPEC does not state.** ISO layouts need two-digit months and days;
+slash dates accept one or two digits. Fixes are written zero-padded in numeric layouts and
+unpadded in the two month-name layouts. A date that does not exist is flagged with high
+confidence. With R6 and R7 the rules-only run gives recall 0.808 and precision 0.709
+(0.662 and 0.667 before them); `date-format` locates 12 of 12 with 12 correct fixes and
+`shape` locates 10 with no false positive.
