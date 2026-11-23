@@ -5,7 +5,8 @@ import type { Dataset, Profile, Row } from '../../types';
 import type { Candidate } from '../precedence';
 import { scoreCandidatePairs } from '../similarity';
 
-const NEAR_DUPLICATE_MIN_SIMILARITY = 0.9;
+/** The similarity from which two rows are reported as near duplicates. The one declaration. */
+export const NEAR_DUPLICATE_MIN_SIMILARITY = 0.9;
 
 export function detectDuplicates(dataset: Dataset, profile: Profile): Candidate[] {
   const found: Candidate[] = [];

@@ -4,11 +4,17 @@ import { comparisonKey, isMissing } from '../../profile';
 import type { ColumnProfile, Dataset, Profile } from '../../types';
 import type { Candidate } from '../precedence';
 
-/** Outer whitespace goes everywhere; repeated inner whitespace stays in free text. */
+/**
+ * Outer whitespace goes everywhere; runs of spaces and tabs inside the value go outside free
+ * text. A line break inside a value is never changed.
+ */
 function tidySpacing(value: string, column: ColumnProfile): string {
   const trimmed = value.trim();
-  return column.freeText ? trimmed : trimmed.replace(/\s{2,}/g, ' ');
+  return column.freeText ? trimmed : trimmed.replace(/[ \t]{2,}/g, ' ');
 }
+
+/** A value of several lines is never rewritten to another spelling, nor offered as one. */
+const hasInnerLineBreak = (value: string) => /[\r\n]/.test(value.trim());
 
 /** Per comparison key, how often each spelling is used, in order of first appearance. */
 function countSpellings(values: string[], column: ColumnProfile): Map<string, Map<string, number>> {
@@ -43,12 +49,12 @@ export function detectSpelling(dataset: Dataset, profile: Profile): Candidate[] 
       .map((row) => ({ rowId: row.id, current: row.cells[column.name] ?? '' }))
       .filter((cell) => !isMissing(cell.current, column.kind));
     const spellings = column.categorical
-      ? countSpellings(cells.map((cell) => cell.current), column)
+      ? countSpellings(cells.map((cell) => cell.current).filter((value) => !hasInnerLineBreak(value)), column)
       : null;
 
     for (const { rowId, current } of cells) {
       const tidy = tidySpacing(current, column);
-      const counts = spellings?.get(comparisonKey(current));
+      const counts = hasInnerLineBreak(current) ? undefined : spellings?.get(comparisonKey(current));
       const target = counts ? usualSpelling(counts) : tidy;
       if (target === current) continue;
       const base = {

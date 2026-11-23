@@ -1,0 +1,1016 @@
+{
+  "tool": "ai-data-cleanup-assistant",
+  "generatedAt": "2026-11-23T19:53:50.264Z",
+  "mode": "rules",
+  "dataset": "listings",
+  "model": null,
+  "sha256": "8beeed79290f0e9b2b98749cb34be2d2c694073b76593f663f7c156755f876cd",
+  "rows": 414,
+  "analysisMs": 120,
+  "score": {
+    "issues": 112,
+    "dismissed": 0,
+    "truePositives": 105,
+    "falsePositives": 7,
+    "extra": 0,
+    "falseNegatives": 25,
+    "precision": 0.9375,
+    "recall": 0.8076923076923077,
+    "recallByType": {
+      "suspicious": {
+        "located": 17,
+        "total": 23
+      },
+      "inconsistent": {
+        "located": 43,
+        "total": 61
+      },
+      "missing": {
+        "located": 31,
+        "total": 32
+      },
+      "duplicate": {
+        "located": 14,
+        "total": 14
+      }
+    },
+    "recallByKind": {
+      "impossible-value": {
+        "located": 6,
+        "total": 6
+      },
+      "date-format": {
+        "located": 9,
+        "total": 9
+      },
+      "cross-field": {
+        "located": 0,
+        "total": 6
+      },
+      "blank": {
+        "located": 12,
+        "total": 12
+      },
+      "invalid-format": {
+        "located": 3,
+        "total": 6
+      },
+      "semantic-variant": {
+        "located": 5,
+        "total": 17
+      },
+      "near-duplicate": {
+        "located": 8,
+        "total": 8
+      },
+      "exact-duplicate": {
+        "located": 6,
+        "total": 6
+      },
+      "placeholder": {
+        "located": 8,
+        "total": 8
+      },
+      "number-format": {
+        "located": 8,
+        "total": 8
+      },
+      "case-whitespace": {
+        "located": 18,
+        "total": 18
+      },
+      "junk-record": {
+        "located": 0,
+        "total": 3
+      },
+      "placeholder-derivable": {
+        "located": 3,
+        "total": 4
+      },
+      "outlier-typo": {
+        "located": 8,
+        "total": 8
+      },
+      "blank-derivable": {
+        "located": 8,
+        "total": 8
+      },
+      "date-format-ambiguous": {
+        "located": 3,
+        "total": 3
+      }
+    },
+    "byIssueType": {
+      "suspicious": {
+        "truePositives": 12,
+        "falsePositives": 4,
+        "extra": 0
+      },
+      "inconsistent": {
+        "truePositives": 48,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "missing": {
+        "truePositives": 31,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "duplicate": {
+        "truePositives": 14,
+        "falsePositives": 3,
+        "extra": 0
+      }
+    },
+    "byDetector": {
+      "outlier": {
+        "truePositives": 12,
+        "falsePositives": 4,
+        "extra": 0
+      },
+      "date-format": {
+        "truePositives": 12,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "empty": {
+        "truePositives": 20,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "near-duplicate": {
+        "truePositives": 8,
+        "falsePositives": 3,
+        "extra": 0
+      },
+      "exact-duplicate": {
+        "truePositives": 6,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "placeholder": {
+        "truePositives": 11,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "number-format": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "case-variant": {
+        "truePositives": 9,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "whitespace": {
+        "truePositives": 9,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "shape": {
+        "truePositives": 10,
+        "falsePositives": 0,
+        "extra": 0
+      }
+    },
+    "confusion": {
+      "suspicious": {
+        "suspicious": 12,
+        "inconsistent": 5
+      },
+      "inconsistent": {
+        "inconsistent": 43
+      },
+      "missing": {
+        "missing": 31
+      },
+      "duplicate": {
+        "duplicate": 14
+      }
+    },
+    "fixAccuracy": {
+      "correct": 49,
+      "scored": 49
+    },
+    "fabricatedFixes": [],
+    "fixesOnCleanData": [
+      "near-duplicate:54+239::del-239",
+      "near-duplicate:122+301::del-301",
+      "near-duplicate:157+370::del-370"
+    ],
+    "trapsHit": [
+      {
+        "trap": "T01",
+        "kind": "legit-outlier",
+        "issueId": "outlier:43:sqft:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T01",
+        "kind": "legit-outlier",
+        "issueId": "outlier:43:list_price:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T02",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:54+239::del-239",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T03",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:122+301::del-301",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T04",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:157+370::del-370",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T08",
+        "kind": "legit-outlier",
+        "issueId": "outlier:316:sqft:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T08",
+        "kind": "legit-outlier",
+        "issueId": "outlier:316:list_price:flag",
+        "detector": "outlier"
+      }
+    ],
+    "wronglyDismissed": [],
+    "located": [
+      {
+        "errorId": "E001",
+        "issueId": "outlier:1:year_built:flag"
+      },
+      {
+        "errorId": "E002",
+        "issueId": "date-format:3:list_date:set-6db556d6"
+      },
+      {
+        "errorId": "E004",
+        "issueId": "empty:13:sqft:flag"
+      },
+      {
+        "errorId": "E007",
+        "issueId": "near-duplicate:20+376::del-376"
+      },
+      {
+        "errorId": "E008",
+        "issueId": "exact-duplicate:23+236::del-236"
+      },
+      {
+        "errorId": "E009",
+        "issueId": "placeholder:25:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E010",
+        "issueId": "number-format:28:list_price:set-1d57343e"
+      },
+      {
+        "errorId": "E011",
+        "issueId": "near-duplicate:29+259::del-259"
+      },
+      {
+        "errorId": "E012",
+        "issueId": "case-variant:30:city:set-f39d341e"
+      },
+      {
+        "errorId": "E013",
+        "issueId": "near-duplicate:31+356::del-356"
+      },
+      {
+        "errorId": "E015",
+        "issueId": "whitespace:46:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E017",
+        "issueId": "placeholder:50:agent_email:set-811c9dc5"
+      },
+      {
+        "errorId": "E018",
+        "issueId": "near-duplicate:51+341::del-341"
+      },
+      {
+        "errorId": "E020",
+        "issueId": "whitespace:55:city:set-8fb074a1"
+      },
+      {
+        "errorId": "E021",
+        "issueId": "empty:57:sqft:flag"
+      },
+      {
+        "errorId": "E022",
+        "issueId": "outlier:59:list_price:flag"
+      },
+      {
+        "errorId": "E023",
+        "issueId": "shape:60:zip:flag"
+      },
+      {
+        "errorId": "E024",
+        "issueId": "outlier:65:list_price:flag"
+      },
+      {
+        "errorId": "E027",
+        "issueId": "whitespace:74:status:set-608f893f"
+      },
+      {
+        "errorId": "E028",
+        "issueId": "empty:77:city:flag"
+      },
+      {
+        "errorId": "E029",
+        "issueId": "case-variant:78:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E030",
+        "issueId": "empty:85:bedrooms:flag"
+      },
+      {
+        "errorId": "E031",
+        "issueId": "shape:89:state:flag"
+      },
+      {
+        "errorId": "E032",
+        "issueId": "near-duplicate:96+402::del-402"
+      },
+      {
+        "errorId": "E033",
+        "issueId": "placeholder:103:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E034",
+        "issueId": "date-format:105:list_date:set-b9dc266d"
+      },
+      {
+        "errorId": "E035",
+        "issueId": "empty:106:city:flag"
+      },
+      {
+        "errorId": "E036",
+        "issueId": "case-variant:110:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E037",
+        "issueId": "outlier:118:list_price:flag"
+      },
+      {
+        "errorId": "E038",
+        "issueId": "shape:120:state:flag"
+      },
+      {
+        "errorId": "E039",
+        "issueId": "exact-duplicate:121+148::del-148"
+      },
+      {
+        "errorId": "E042",
+        "issueId": "number-format:128:list_price:set-9456df9a"
+      },
+      {
+        "errorId": "E043",
+        "issueId": "empty:134:sqft:flag"
+      },
+      {
+        "errorId": "E044",
+        "issueId": "date-format:138:list_date:set-bee0ab7a"
+      },
+      {
+        "errorId": "E045",
+        "issueId": "outlier:139:bathrooms:flag"
+      },
+      {
+        "errorId": "E046",
+        "issueId": "placeholder:141:city:set-811c9dc5"
+      },
+      {
+        "errorId": "E047",
+        "issueId": "near-duplicate:146+287::del-287"
+      },
+      {
+        "errorId": "E049",
+        "issueId": "case-variant:155:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E051",
+        "issueId": "empty:159:year_built:flag"
+      },
+      {
+        "errorId": "E052",
+        "issueId": "number-format:174:list_price:set-6c1d6536"
+      },
+      {
+        "errorId": "E053",
+        "issueId": "exact-duplicate:178+266::del-266"
+      },
+      {
+        "errorId": "E054",
+        "issueId": "empty:182:city:flag"
+      },
+      {
+        "errorId": "E055",
+        "issueId": "date-format:183:list_date:set-3f018f83"
+      },
+      {
+        "errorId": "E056",
+        "issueId": "outlier:189:year_built:flag"
+      },
+      {
+        "errorId": "E057",
+        "issueId": "number-format:191:list_price:set-251971dc"
+      },
+      {
+        "errorId": "E058",
+        "issueId": "date-format:192:list_date:set-4b03e0fe"
+      },
+      {
+        "errorId": "E059",
+        "issueId": "whitespace:193:property_type:set-7381937b"
+      },
+      {
+        "errorId": "E060",
+        "issueId": "empty:194:agent_email:flag"
+      },
+      {
+        "errorId": "E061",
+        "issueId": "whitespace:197:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E062",
+        "issueId": "whitespace:199:status:set-608f893f"
+      },
+      {
+        "errorId": "E063",
+        "issueId": "exact-duplicate:205+297::del-297"
+      },
+      {
+        "errorId": "E064",
+        "issueId": "outlier:207:sqft:flag"
+      },
+      {
+        "errorId": "E065",
+        "issueId": "placeholder:210:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E066",
+        "issueId": "near-duplicate:212+289::del-289"
+      },
+      {
+        "errorId": "E067",
+        "issueId": "placeholder:216:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E068",
+        "issueId": "outlier:218:sqft:flag"
+      },
+      {
+        "errorId": "E069",
+        "issueId": "whitespace:219:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E070",
+        "issueId": "case-variant:220:city:set-9a1c8c20"
+      },
+      {
+        "errorId": "E071",
+        "issueId": "placeholder:222:city:set-811c9dc5"
+      },
+      {
+        "errorId": "E072",
+        "issueId": "shape:223:state:flag"
+      },
+      {
+        "errorId": "E073",
+        "issueId": "near-duplicate:225+321::del-321"
+      },
+      {
+        "errorId": "E074",
+        "issueId": "date-format:226:list_date:set-9fd5598f"
+      },
+      {
+        "errorId": "E076",
+        "issueId": "shape:231:zip:flag"
+      },
+      {
+        "errorId": "E077",
+        "issueId": "shape:234:state:flag"
+      },
+      {
+        "errorId": "E078",
+        "issueId": "empty:241:bedrooms:flag"
+      },
+      {
+        "errorId": "E079",
+        "issueId": "empty:244:agent_email:flag"
+      },
+      {
+        "errorId": "E081",
+        "issueId": "exact-duplicate:254+299::del-299"
+      },
+      {
+        "errorId": "E082",
+        "issueId": "number-format:257:list_price:set-b2a03426"
+      },
+      {
+        "errorId": "E084",
+        "issueId": "outlier:263:sqft:flag"
+      },
+      {
+        "errorId": "E085",
+        "issueId": "number-format:265:list_price:set-e65769a9"
+      },
+      {
+        "errorId": "E086",
+        "issueId": "case-variant:271:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E087",
+        "issueId": "placeholder:273:remarks:set-811c9dc5"
+      },
+      {
+        "errorId": "E088",
+        "issueId": "case-variant:274:status:set-1f89134f"
+      },
+      {
+        "errorId": "E090",
+        "issueId": "case-variant:284:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E091",
+        "issueId": "empty:285:agent_email:flag"
+      },
+      {
+        "errorId": "E093",
+        "issueId": "empty:293:year_built:flag"
+      },
+      {
+        "errorId": "E096",
+        "issueId": "whitespace:309:status:set-a579599b"
+      },
+      {
+        "errorId": "E097",
+        "issueId": "empty:312:year_built:flag"
+      },
+      {
+        "errorId": "E098",
+        "issueId": "date-format:313:list_date:set-42981b0f"
+      },
+      {
+        "errorId": "E099",
+        "issueId": "date-format:327:list_date:set-8b2cb7eb"
+      },
+      {
+        "errorId": "E100",
+        "issueId": "shape:330:bedrooms:flag"
+      },
+      {
+        "errorId": "E102",
+        "issueId": "date-format:337:list_date:set-409817e9"
+      },
+      {
+        "errorId": "E103",
+        "issueId": "date-format:339:list_date:set-fdadeac1"
+      },
+      {
+        "errorId": "E105",
+        "issueId": "date-format:345:list_date:set-d19d795a"
+      },
+      {
+        "errorId": "E106",
+        "issueId": "shape:346:state:flag"
+      },
+      {
+        "errorId": "E107",
+        "issueId": "shape:347:bedrooms:flag"
+      },
+      {
+        "errorId": "E108",
+        "issueId": "number-format:352:list_price:set-44db380d"
+      },
+      {
+        "errorId": "E109",
+        "issueId": "case-variant:354:status:set-608f893f"
+      },
+      {
+        "errorId": "E111",
+        "issueId": "number-format:364:list_price:set-58b2a659"
+      },
+      {
+        "errorId": "E112",
+        "issueId": "placeholder:366:remarks:set-811c9dc5"
+      },
+      {
+        "errorId": "E113",
+        "issueId": "shape:369:zip:flag"
+      },
+      {
+        "errorId": "E114",
+        "issueId": "date-format:373:list_date:set-addc1389"
+      },
+      {
+        "errorId": "E115",
+        "issueId": "exact-duplicate:375+409::del-409"
+      },
+      {
+        "errorId": "E116",
+        "issueId": "empty:377:bedrooms:flag"
+      },
+      {
+        "errorId": "E117",
+        "issueId": "outlier:380:list_price:flag"
+      },
+      {
+        "errorId": "E118",
+        "issueId": "placeholder:383:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E119",
+        "issueId": "empty:387:year_built:flag"
+      },
+      {
+        "errorId": "E120",
+        "issueId": "outlier:388:list_price:flag"
+      },
+      {
+        "errorId": "E121",
+        "issueId": "outlier:390:list_price:flag"
+      },
+      {
+        "errorId": "E124",
+        "issueId": "empty:397:agent_email:flag"
+      },
+      {
+        "errorId": "E125",
+        "issueId": "empty:399:sqft:flag"
+      },
+      {
+        "errorId": "E127",
+        "issueId": "whitespace:405:property_type:set-7381937b"
+      },
+      {
+        "errorId": "E128",
+        "issueId": "empty:408:sqft:flag"
+      },
+      {
+        "errorId": "E129",
+        "issueId": "placeholder:412:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E130",
+        "issueId": "empty:414:city:flag"
+      }
+    ],
+    "missed": [
+      "E003",
+      "E005",
+      "E006",
+      "E014",
+      "E016",
+      "E019",
+      "E025",
+      "E026",
+      "E040",
+      "E041",
+      "E048",
+      "E050",
+      "E075",
+      "E080",
+      "E083",
+      "E089",
+      "E092",
+      "E094",
+      "E095",
+      "E101",
+      "E104",
+      "E110",
+      "E122",
+      "E123",
+      "E126"
+    ],
+    "falsePositiveIssues": [
+      {
+        "issueId": "outlier:43:sqft:flag",
+        "detector": "outlier",
+        "rowIds": [
+          43
+        ],
+        "column": "sqft"
+      },
+      {
+        "issueId": "outlier:43:list_price:flag",
+        "detector": "outlier",
+        "rowIds": [
+          43
+        ],
+        "column": "list_price"
+      },
+      {
+        "issueId": "near-duplicate:54+239::del-239",
+        "detector": "near-duplicate",
+        "rowIds": [
+          54,
+          239
+        ],
+        "column": null
+      },
+      {
+        "issueId": "near-duplicate:122+301::del-301",
+        "detector": "near-duplicate",
+        "rowIds": [
+          122,
+          301
+        ],
+        "column": null
+      },
+      {
+        "issueId": "near-duplicate:157+370::del-370",
+        "detector": "near-duplicate",
+        "rowIds": [
+          157,
+          370
+        ],
+        "column": null
+      },
+      {
+        "issueId": "outlier:316:sqft:flag",
+        "detector": "outlier",
+        "rowIds": [
+          316
+        ],
+        "column": "sqft"
+      },
+      {
+        "issueId": "outlier:316:list_price:flag",
+        "detector": "outlier",
+        "rowIds": [
+          316
+        ],
+        "column": "list_price"
+      }
+    ]
+  },
+  "t1": {
+    "pass": true,
+    "recall": [
+      {
+        "label": "exact-duplicate",
+        "located": 6,
+        "total": 6,
+        "pass": true
+      },
+      {
+        "label": "blank + blank-derivable",
+        "located": 20,
+        "total": 20,
+        "pass": true
+      },
+      {
+        "label": "case-whitespace",
+        "located": 18,
+        "total": 18,
+        "pass": true
+      },
+      {
+        "label": "number-format",
+        "located": 8,
+        "total": 8,
+        "pass": true
+      }
+    ],
+    "falsePositives": [
+      {
+        "detector": "exact-duplicate",
+        "falsePositives": 0,
+        "pass": true
+      },
+      {
+        "detector": "empty",
+        "falsePositives": 0,
+        "pass": true
+      },
+      {
+        "detector": "whitespace",
+        "falsePositives": 0,
+        "pass": true
+      },
+      {
+        "detector": "case-variant",
+        "falsePositives": 0,
+        "pass": true
+      },
+      {
+        "detector": "number-format",
+        "falsePositives": 0,
+        "pass": true
+      }
+    ]
+  },
+  "r2": {
+    "threshold": 0.9,
+    "planted": [
+      {
+        "id": "E007",
+        "kind": "near-duplicate",
+        "rows": [
+          20,
+          376
+        ],
+        "similarity": 0.9574214498736575,
+        "reported": true
+      },
+      {
+        "id": "E008",
+        "kind": "exact-duplicate",
+        "rows": [
+          23,
+          236
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E011",
+        "kind": "near-duplicate",
+        "rows": [
+          29,
+          259
+        ],
+        "similarity": 0.9662919811499788,
+        "reported": true
+      },
+      {
+        "id": "E013",
+        "kind": "near-duplicate",
+        "rows": [
+          31,
+          356
+        ],
+        "similarity": 0.940752522106617,
+        "reported": true
+      },
+      {
+        "id": "E018",
+        "kind": "near-duplicate",
+        "rows": [
+          51,
+          341
+        ],
+        "similarity": 0.9387126929999616,
+        "reported": true
+      },
+      {
+        "id": "E032",
+        "kind": "near-duplicate",
+        "rows": [
+          96,
+          402
+        ],
+        "similarity": 0.9314988912947084,
+        "reported": true
+      },
+      {
+        "id": "E039",
+        "kind": "exact-duplicate",
+        "rows": [
+          121,
+          148
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E047",
+        "kind": "near-duplicate",
+        "rows": [
+          146,
+          287
+        ],
+        "similarity": 0.9357942498094836,
+        "reported": true
+      },
+      {
+        "id": "E053",
+        "kind": "exact-duplicate",
+        "rows": [
+          178,
+          266
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E063",
+        "kind": "exact-duplicate",
+        "rows": [
+          205,
+          297
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E066",
+        "kind": "near-duplicate",
+        "rows": [
+          212,
+          289
+        ],
+        "similarity": 0.953691395898919,
+        "reported": true
+      },
+      {
+        "id": "E073",
+        "kind": "near-duplicate",
+        "rows": [
+          225,
+          321
+        ],
+        "similarity": 0.9682748057882155,
+        "reported": true
+      },
+      {
+        "id": "E081",
+        "kind": "exact-duplicate",
+        "rows": [
+          254,
+          299
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E115",
+        "kind": "exact-duplicate",
+        "rows": [
+          375,
+          409
+        ],
+        "similarity": 1,
+        "reported": true
+      }
+    ],
+    "trapPairs": [
+      {
+        "id": "T02",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          54,
+          239
+        ],
+        "similarity": 0.9633937807580379,
+        "reported": true
+      },
+      {
+        "id": "T03",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          122,
+          301
+        ],
+        "similarity": 0.9022429671762989,
+        "reported": true
+      },
+      {
+        "id": "T04",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          157,
+          370
+        ],
+        "similarity": 0.9067923851858757,
+        "reported": true
+      },
+      {
+        "id": "T07",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          314,
+          350
+        ],
+        "similarity": 0.8999010232887014,
+        "reported": false
+      }
+    ],
+    "otherAbove": [],
+    "nextBelow": {
+      "rowIds": [
+        314,
+        350
+      ],
+      "similarity": 0.8999010232887014
+    },
+    "nextOtherBelow": {
+      "rowIds": [
+        277,
+        334
+      ],
+      "similarity": 0.8593409225383112
+    }
+  }
+}

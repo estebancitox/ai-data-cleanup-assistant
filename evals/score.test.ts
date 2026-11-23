@@ -42,6 +42,12 @@ describe('score', () => {
     expect(score([cell(9, 'wood')], truth)).toMatchObject({ truePositives: 0, falsePositives: 1 });
   });
 
+  it('never locates a junk record with a duplicate issue', () => {
+    // Row 4 is a junk record. "These two rows are the same entity" is another claim.
+    expect(score([pair(4, 10)], truth)).toMatchObject({ truePositives: 0, falsePositives: 1 });
+    expect(score([pair(4, 10)], truth).located).toEqual([]);
+  });
+
   it('locates a cell error by row and column, and a junk record by any issue on its row', () => {
     expect(score([cell(2, 'wood')], truth).located).toHaveLength(1);
     expect(score([cell(2, 'finish')], truth)).toMatchObject({ truePositives: 0, falsePositives: 1 });

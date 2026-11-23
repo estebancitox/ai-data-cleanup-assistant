@@ -349,3 +349,78 @@ confidence. With R6 and R7 the rules-only run gives recall 0.808 and precision 0
 `shape` locates 10 with no false positive.
 
 Resolution: accepted. SPEC 1.1 §5.4 states the details of R6 as implemented.
+
+### Independent review of session 1 (2026-11-23, fixes from 14:49 -05)
+
+An independent reviewer read the session 1 commit and found no blocker. The owner decided
+which items are fixed now. Each entry: what the review found, where, and the resolution.
+
+**F11. A `duplicate` issue could locate a junk record (review S1, `evals/score.ts`).** After
+failing to match a duplicate error, a duplicate issue fell through to the rule "an error with
+no columns is located by any issue on its row".
+
+Resolution: fixed. A `duplicate` issue only ever locates a duplicate error: "these two rows
+are the same entity" is a different claim from "this row is junk", and the strict reading can
+only lower the reported numbers. SPEC 1.2 §8.2. The development run is unchanged.
+
+**F12. A single-column dataset with an empty cell does not survive the round trip (review S2,
+`src/core/csv`).** Reproduced: `serializeCsv` writes the empty cell as an empty line, and
+`parseCsv` skips empty lines, so the row is lost.
+
+Resolution: open, not fixed. The decision was to fix it in `serializeCsv` only, and that is
+not possible: Papa Parse 5.7.1 with `skipEmptyLines: true` tests the parsed row, so it drops
+a quoted empty field (`""`) exactly as it drops an empty line, and with the option off both
+come back as the same row. No text that `serializeCsv` can write for that cell survives
+`parseCsv`. No code and no test were changed for this item. To decide: let `parseCsv` tell an
+empty line from a quoted empty field (a change to parsing, with `serializeCsv` writing `""`),
+or state in SPEC §4.4 that the round trip holds for datasets `parseCsv` can return, which
+never have an empty cell in a single column.
+
+**F13. The 0.90 threshold of R2 was declared twice (review S4, `evals/run.ts` and the
+near-duplicate detector).**
+
+Resolution: fixed. One declaration, `NEAR_DUPLICATE_MIN_SIMILARITY` in
+`src/core/analyze/detectors/duplicates.ts`, exported by `src/core/analyze` and imported by
+the eval.
+
+**F14. A T1 failure still exited with 0 (review S5, `evals/run.ts`).**
+
+Resolution: fixed. `npm run eval` exits with code 1 when T1 fails; the run file is still
+written. SPEC 1.2 §8.3. The evaluation moved to `evals/evaluate.ts`, without files, so a test
+can show the exit code on inline data without editing a fixture.
+
+**F15. The T1 check passed when a detector id it reads did not exist in the results
+(`evals/run.ts`).** A missing detector counted as zero false positives.
+
+Resolution: fixed. A T1 detector with no scored issue fails the check, and the table says so.
+
+**F16. The R2 table of the eval printed a "reference" column with the numbers of SPEC 1.0.**
+
+Resolution: fixed. The column is removed; SPEC §8.4 holds the measured numbers.
+
+**F17. R4 joined the lines of a cell (`src/core/analyze/detectors/spelling.ts`).** A CRLF
+inside a cell counted as repeated whitespace and got a high-confidence fix.
+
+Resolution: fixed. R4 collapses runs of spaces and tabs only, and never changes a line break
+inside a cell. For the same reason a value of several lines is neither rewritten to another
+spelling of its key nor offered as the spelling for one-line values. Leading and trailing
+whitespace, line breaks included, is still trimmed. SPEC 1.2 §5.4.
+
+**F18. The group key omitted `source` (`src/core/analyze/index.ts`).** The detector id
+`placeholder` is shared by R3 and C2, so a rule issue and a contract issue could share a group.
+
+Resolution: fixed. `source` is part of the group key. SPEC 1.2 §4.3.
+
+**F19. R6 and a slash date in the minority order (review S3,
+`src/core/analyze/detectors/date-format.ts`).** An unambiguous slash date written in the
+other order than the rest of a slash column is not flagged, because it is in the dominant
+layout. Such a date also removes the column's evidence of order, so ambiguous slash dates
+are then flagged without a fix.
+
+Resolution: logged. No code change.
+
+**F20. The fix of an `extra` issue is never checked for fabrication (`evals/score.ts`).** An
+issue counted as `extra` leaves the scoring before the fix checks, so a value it proposes for
+an error with no known fix is not counted. The development run has no `extra` issue.
+
+Resolution: logged. No code change.

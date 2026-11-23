@@ -3,7 +3,7 @@ import { profileDataset } from '../profile';
 import { inventory, table } from '../testing';
 import type { Dataset, Issue } from '../types';
 import { detectOutliers } from './detectors/outlier';
-import { analyze, groupIssues } from './index';
+import { analyze, groupIssues, NEAR_DUPLICATE_MIN_SIMILARITY } from './index';
 import { onePerCell, type Candidate } from './precedence';
 
 const issuesOf = (dataset: Dataset, detector: string): Issue[] =>
@@ -51,6 +51,10 @@ describe('R2 near-duplicate', () => {
     dataset.rows[0].cells.town = '';
     const [issue] = issuesOf(dataset, 'near-duplicate');
     expect(issue.fix).toEqual({ kind: 'delete-row', rowId: 1, keepRowId: 5 });
+  });
+
+  it('exports the one declaration of its threshold', () => {
+    expect(NEAR_DUPLICATE_MIN_SIMILARITY).toBe(0.9);
   });
 
   it('does not report rows that differ clearly', () => {
@@ -111,6 +115,22 @@ describe('R4 whitespace and case-variant', () => {
   it('collapses repeated inner whitespace outside free text', () => {
     const [issue] = issuesOf(single('name', ['Alloy  hub', 'Steel rail']), 'whitespace');
     expect(issue.fix).toMatchObject({ to: 'Alloy hub' });
+  });
+
+  it('collapses runs of spaces and tabs only', () => {
+    const [issue] = issuesOf(single('name', ['Alloy \t hub', 'Steel rail']), 'whitespace');
+    expect(issue.fix).toMatchObject({ to: 'Alloy hub' });
+  });
+
+  it('never changes a line break inside a cell', () => {
+    expect(cellIssuesOf(single('name', ['Alloy\r\nhub', 'Steel\n\nrail', 'Carbon chain']))).toEqual([]);
+    // Spaces next to a line break are still collapsed; the line break stays.
+    const [issue] = issuesOf(single('name', ['Alloy  \r\nhub', 'Steel rail']), 'whitespace');
+    expect(issue.fix).toMatchObject({ to: 'Alloy \r\nhub' });
+    // A two-line value has the key of its one-line spelling; it is not rewritten to it.
+    expect(cellIssuesOf(single('wood', ['Oak board', 'Oak board', 'Oak\nboard', 'Pine board']))).toEqual([]);
+    // And a one-line value is never rewritten to a spelling with a line break.
+    expect(cellIssuesOf(single('wood', ['Oak\nboard', 'Oak\nboard', 'Oak board', 'Pine board']))).toEqual([]);
   });
 
   it('leaves inner whitespace alone in free text but still trims it', () => {
@@ -337,6 +357,17 @@ describe('groupIssues', () => {
       ['number-format', 'price', undefined, 2],
       ['case-variant', 'wood', 'Pine', 1],
     ]);
+  });
+
+  it('keeps rule issues and contract issues in separate groups', () => {
+    // The detector id `placeholder` is shared by R3 (rule) and C2 (contract).
+    const issue = (id: string, source: Issue['source']): Issue => ({
+      id, type: 'missing', detector: 'placeholder', source, rowIds: [1], column: 'a', reason: '', confidence: 'high',
+      fix: { kind: 'set-cell', rowId: 1, column: 'a', to: '' },
+    });
+    const groups = groupIssues([issue('1', 'rule'), issue('2', 'ai'), issue('3', 'rule')]);
+    expect(groups.map((group) => [group.source, group.issues.length])).toEqual([['rule', 2], ['ai', 1]]);
+    expect(new Set(groups.map((group) => group.id)).size).toBe(2);
   });
 
   it('reports the lowest confidence of the group', () => {

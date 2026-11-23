@@ -63,11 +63,14 @@ export interface Score {
 
 const sameRows = (a: number[], b: number[]) => a.length === b.length && a.every((row) => b.includes(row));
 
-/** The error an issue points at, whether or not another issue already located it. */
+/**
+ * The error an issue points at, whether or not another issue already located it. A duplicate
+ * issue only ever locates a duplicate error: "these two rows are the same entity" is a
+ * different claim from "this row is junk".
+ */
 function errorLocatedBy(issue: Issue, errors: TruthError[]): TruthError | undefined {
   if (issue.type === 'duplicate') {
-    const duplicate = errors.find((error) => error.type === 'duplicate' && sameRows(error.rows, issue.rowIds));
-    if (duplicate) return duplicate;
+    return errors.find((error) => error.type === 'duplicate' && sameRows(error.rows, issue.rowIds));
   }
   return errors.find(
     (error) =>

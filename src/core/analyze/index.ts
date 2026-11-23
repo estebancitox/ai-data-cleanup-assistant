@@ -11,6 +11,8 @@ import { detectShape } from './detectors/shape';
 import { detectSpelling } from './detectors/spelling';
 import { issueId, onePerCell } from './precedence';
 
+export { NEAR_DUPLICATE_MIN_SIMILARITY } from './detectors/duplicates';
+
 /**
  * Finds every issue in the dataset. Without a contract it runs the rule detectors only. With
  * a verified contract it also runs the detectors that the contract drives. Pure and
@@ -51,16 +53,17 @@ const REFORMATTING_DETECTORS = new Set(['whitespace', 'number-format', 'date-for
 const CONFIDENCE_RANK: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
 
 /**
- * Groups issues for review and bulk decisions: same type, detector and column, and the same
- * target value when the fix writes a value the group shares. Fixes that reformat each cell's
- * own value are grouped without the target.
+ * Groups issues for review and bulk decisions: same type, detector, source and column, and
+ * the same target value when the fix writes a value the group shares. Fixes that reformat
+ * each cell's own value are grouped without the target. The source is part of the group
+ * because a rule and a contract rule can share a detector id.
  */
 export function groupIssues(issues: Issue[]): IssueGroup[] {
   const groups = new Map<string, IssueGroup>();
   for (const issue of issues) {
     const target =
       issue.fix?.kind === 'set-cell' && !REFORMATTING_DETECTORS.has(issue.detector) ? issue.fix.to : undefined;
-    const id = [issue.type, issue.detector, issue.column ?? '', target === undefined ? '' : `=${target}`].join('|');
+    const id = [issue.type, issue.detector, issue.source, issue.column ?? '', target === undefined ? '' : `=${target}`].join('|');
     const group = groups.get(id);
     if (!group) {
       groups.set(id, {

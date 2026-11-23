@@ -1,6 +1,14 @@
 # SPEC: AI Data Cleanup Assistant
 
-Version 1.1 · 2026-11-23 · Status: contract for the one-day build
+Version 1.2 · 2026-11-23 · Status: contract for the one-day build
+
+Changes in 1.2. Each one closes a finding of the independent review (`DECISIONS.md` §10):
+
+- §4.3: `groupIssues` groups by type, detector, source, column and target value (F18).
+- §5.4, R4: only runs of spaces or tabs are collapsed; a line break inside a cell is never
+  changed (F17).
+- §8.2: a junk record is not located by a `duplicate` issue (F11).
+- §8.3: `npm run eval` exits with a non-zero code when T1 fails (F14).
 
 Changes in 1.1. Each one closes a finding of session 1 (`DECISIONS.md` §10):
 
@@ -247,9 +255,11 @@ export function verifyContract(proposed: Contract, dataset: Dataset): VerifiedCo
 export function analyze(dataset: Dataset, contract?: VerifiedContract): Analysis;
 
 /**
- * Groups issues for review and bulk decisions: same type, detector and column, and the same
- * target value when the fix writes a value the group shares. Fixes that reformat each cell's
- * own value (`whitespace`, `number-format`, `date-format`) are grouped without the target.
+ * Groups issues for review and bulk decisions: same type, detector, source and column, and
+ * the same target value when the fix writes a value the group shares. Fixes that reformat
+ * each cell's own value (`whitespace`, `number-format`, `date-format`) are grouped without
+ * the target. The source is part of the group because a rule and a contract rule can share a
+ * detector id (`placeholder` is both R3 and C2).
  */
 export function groupIssues(issues: Issue[]): IssueGroup[];
 
@@ -361,7 +371,7 @@ a column or the row similarity.
 | R1 | `exact-duplicate` | MUST | Rows equal in every column after trimming | duplicate | delete the later row, keep the first | high |
 | R2 | `near-duplicate` | MUST | Candidate pairs with similarity of 0.90 or more that are not exact duplicates | duplicate | delete one row, keep the more complete one (fewer missing cells; tie: lower row id) | low |
 | R3 | `empty`, `placeholder` | MUST | Empty cells; placeholder cells | missing | empty: none. placeholder: set to empty | high |
-| R4 | `whitespace`, `case-variant` | MUST | Leading or trailing whitespace in any column; repeated inner whitespace outside free text; in categorical columns, values with the same key written differently | inconsistent | trimmed value; the most frequent spelling of that key (tie: first seen) | high |
+| R4 | `whitespace`, `case-variant` | MUST | Leading or trailing whitespace in any column; repeated inner spaces or tabs outside free text; a line break inside a cell is never changed; in categorical columns, values with the same key written differently | inconsistent | trimmed value; the most frequent spelling of that key (tie: first seen) | high |
 | R5 | `number-format` | MUST | In number columns, values that are numbers once currency symbols, thousands separators and inner spaces are removed | inconsistent | the plain number | high |
 | R6 | `date-format` | SHOULD | In date columns, values not in the column's dominant format | inconsistent | the same date in the dominant format (see below) | high or medium |
 | R7 | `shape` | SHOULD | In columns where one shape covers 90% or more of non-missing values, values with another shape | inconsistent | none | low |
@@ -610,7 +620,8 @@ An issue with the verdict `dismiss` is not scored as an issue; it is counted sep
 
 - A **duplicate** error is located by a `duplicate` issue whose two row ids are the error's rows.
 - Any other error is located by an issue on one of the error's rows whose column is one of the
-  error's `columns`. An error with no columns (a junk record) is located by any issue on its row.
+  error's `columns`. An error with no columns (a junk record) is located by any issue on its row
+  that is not a `duplicate` issue.
 - Matching is one to one. A second issue on an error that is already located is counted as
   `extra`, neither right nor wrong.
 - **True positive**: an issue that locates an error. **False positive**: any other issue.
@@ -634,7 +645,8 @@ An issue with the verdict `dismiss` is not scored as an issue; it is counted sep
 | `npm run eval:heldout` | the same on the held-out dataset | yes | the owner, once |
 
 Each run prints a table and writes `evals/runs/<UTC timestamp>-<mode>-<dataset>.json`, which
-is committed. A run records the model id and the SHA-256 of the dataset.
+is committed. A run records the model id and the SHA-256 of the dataset. `npm run eval` exits
+with a non-zero code when T1 fails.
 
 ### 8.4 Thresholds, fixed before any detector was written
 
