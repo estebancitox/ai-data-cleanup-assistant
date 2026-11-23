@@ -3,11 +3,12 @@
 // evaluation (T1). No files and no fixture names here, so that tests can run it on small
 // inline data.
 
+import { applyVerdicts, selectCases } from '../src/core/adjudicate';
 import { analyze, NEAR_DUPLICATE_MIN_SIMILARITY } from '../src/core/analyze';
 import { scoreCandidatePairs, type ScoredPair } from '../src/core/analyze/similarity';
 import { verifyContract } from '../src/core/contract';
 import { parseCsv } from '../src/core/csv';
-import type { Contract, VerifiedContract } from '../src/core/types';
+import type { Contract, Verdict, VerifiedContract } from '../src/core/types';
 import { score, type Recall, type Score, type Tally, type Truth } from './score';
 
 // T1 of SPEC §8.4.
@@ -66,6 +67,8 @@ export interface Evaluation {
   contract?: { proposed: Contract; verified: VerifiedContract };
   /** Only with a contract: T2 and T3, as measured. */
   thresholds?: ThresholdCheck[];
+  /** Only with verdicts: how many cases there were and what the model answered. */
+  adjudication?: { cases: number; confirm: number; dismiss: number; unsure: number; unanswered: number };
   /** The tables, as printed. The same inputs give the same text. */
   report: string;
   /**
@@ -165,9 +168,10 @@ function contractTables(proposed: Contract, verified: VerifiedContract): string[
 /**
  * Analyses the CSV text and scores the result against the truth. Without a contract it runs
  * the rules alone. With the contract a model proposed, it verifies it against the data first
- * and runs the detectors the verified rules drive as well.
+ * and runs the detectors the verified rules drive as well. With the model's verdicts, a
+ * dismissed issue is not scored as an issue; it is counted apart (SPEC §8.2).
  */
-export function evaluate(csvText: string, truth: Truth, fileName: string, proposed?: Contract): Evaluation {
+export function evaluate(csvText: string, truth: Truth, fileName: string, proposed?: Contract, verdicts?: Verdict[]): Evaluation {
   const parsed = parseCsv(csvText, fileName);
   if (!parsed.ok) throw new Error(`${fileName} could not be parsed: ${parsed.error}`);
 
@@ -175,7 +179,8 @@ export function evaluate(csvText: string, truth: Truth, fileName: string, propos
   const verified = proposed ? verifyContract(proposed, parsed.dataset) : undefined;
   const analysis = analyze(parsed.dataset, verified);
   const analysisMs = Math.round(performance.now() - started);
-  const result = score(analysis.issues, truth);
+  const judged = verdicts ? applyVerdicts(analysis, verdicts) : analysis;
+  const result = score(judged.issues, truth);
   const t1 = checkT1(result);
   const thresholds = proposed ? checkThresholds(result) : undefined;
 
@@ -210,6 +215,7 @@ export function evaluate(csvText: string, truth: Truth, fileName: string, propos
   const nearPlanted = planted.filter((pair) => pair.kind !== 'exact-duplicate');
   const at = fixed(threshold, 2);
 
+  let adjudication: Evaluation['adjudication'];
   const out: string[] = [];
   out.push(
     table('Overall', ['issues', 'TP', 'FP', 'extra', 'FN', 'precision', 'recall'], [[
@@ -248,6 +254,30 @@ export function evaluate(csvText: string, truth: Truth, fileName: string, propos
     const sourceOf = new Map(analysis.issues.map((issue) => [issue.id, issue.source]));
     const missed = new Set(result.missed);
     out.push(...contractTables(proposed, verified));
+    if (verdicts) {
+      const answered = judged.issues.filter((issue) => issue.verdict !== undefined);
+      const count = (value: string) => answered.filter((issue) => issue.verdict?.value === value).length;
+      const cases = selectCases(parsed.dataset, analysis).length;
+      adjudication = { cases, confirm: count('confirm'), dismiss: count('dismiss'), unsure: count('unsure'), unanswered: cases - answered.length };
+      const wrongly = new Set(result.wronglyDismissed);
+      const dismissed = answered.filter((issue) => issue.verdict?.value === 'dismiss');
+      out.push(
+        table('Adjudication (SPEC 6.4)', ['measure', 'value'], [
+          ['cases sent', String(adjudication.cases)],
+          ['confirm', String(adjudication.confirm)],
+          ['dismiss', String(adjudication.dismiss)],
+          ['unsure', String(adjudication.unsure)],
+          ['no answer', String(adjudication.unanswered)],
+        ]),
+      );
+      out.push(
+        table('Dismissed by AI', ['issue', 'detector', 'rows', 'column', 'a real error?', 'the model said'],
+          dismissed.length === 0
+            ? [['none', '', '', '', '', '']]
+            : dismissed.map((issue) => [issue.id, issue.detector, issue.rowIds.join('+'), issue.column ?? '', wrongly.has(issue.id) ? 'YES: wrongly dismissed' : 'no', issue.verdict?.reason ?? '']),
+        ),
+      );
+    }
     out.push(
       table('False positives', ['issue', 'detector', 'source', 'rows', 'column'],
         result.falsePositiveIssues.length === 0
@@ -301,6 +331,7 @@ export function evaluate(csvText: string, truth: Truth, fileName: string, propos
     t1,
     r2: { threshold, planted, trapPairs, otherAbove, nextBelow, nextOtherBelow },
     ...(proposed && verified && thresholds ? { contract: { proposed, verified }, thresholds } : {}),
+    ...(adjudication ? { adjudication } : {}),
     report: out.join('\n'),
     exitCode: proposed ? 0 : t1.pass ? 0 : 1,
   };

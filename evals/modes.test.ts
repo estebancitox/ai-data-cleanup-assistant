@@ -1,9 +1,9 @@
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { describe, expect, it } from 'vitest';
-import { fakeModel } from '../src/ai/testing';
+import { fakeModel, verdictOnAll } from '../src/ai/testing';
 import { serializeCsv } from '../src/core/csv';
 import { nursery, nurseryContract } from '../src/core/testing';
 import { evaluate } from './evaluate';
@@ -92,19 +92,20 @@ describe('eval:recorded', () => {
 describe('eval:live', () => {
   it('writes the recording, prints latency and token usage per call, and eval:recorded prints the same tables', async () => {
     const directory = temporary();
-    const model = fakeModel(timeout, { parsed: nurseryContract(), model: 'fake-model' });
+    const model = fakeModel(timeout, { parsed: nurseryContract(), model: 'fake-model' }, { ...verdictOnAll('confirm', 'No plant here is that tall.'), model: 'fake-model' });
     const live = await runLive({ ...input(directory), client: model.client, record: true, now: () => new Date('2000-01-01T00:00:00.000Z') });
     if (!live.ok) throw new Error(live.lines.join('\n'));
 
-    expect(live.lines.slice(0, 3)).toEqual([
-      expect.stringMatching(/^Model call 1: no answer, \d+\.\d s, n\/a input tokens, n\/a output tokens, not used: timeout$/),
-      expect.stringMatching(/^Model call 2: fake-model, \d+\.\d s, 1200 input tokens, 340 output tokens, used$/),
-      'Live AI analysis: model fake-model.',
+    expect(live.lines.slice(0, 4)).toEqual([
+      expect.stringMatching(/^Contract call 1: no answer, \d+\.\d s, n\/a input tokens, n\/a output tokens, not used: timeout$/),
+      expect.stringMatching(/^Contract call 2: fake-model, \d+\.\d s, 1200 input tokens, 340 output tokens, used$/),
+      expect.stringMatching(/^Adjudication request 1, call 1: fake-model, \d+\.\d s, 1200 input tokens, 340 output tokens, used$/),
+      'Live AI analysis: model fake-model, 1 cases adjudicated in 1 requests.',
     ]);
 
     const recording = JSON.parse(readFileSync(path.join(directory, 'nursery.json'), 'utf8'));
     expect(recording).toMatchObject({
-      format: 1,
+      format: 2,
       dataset: 'nursery',
       sha256: sha256Of(csvText),
       recordedAt: '2000-01-01T00:00:00.000Z',
@@ -113,14 +114,49 @@ describe('eval:live', () => {
     });
     // The contract exactly as the model returned it.
     expect(recording.contract).toEqual(nurseryContract());
-    expect(recording.calls).toHaveLength(2);
+    expect(recording.verdicts).toEqual([{ issueId: 'range:36:height_cm:flag', value: 'confirm', reason: 'No plant here is that tall.' }]);
+    expect(recording.calls).toHaveLength(3);
+    expect(live.evaluation.adjudication).toEqual({ cases: 1, confirm: 1, dismiss: 0, unsure: 0, unanswered: 0 });
+    expect(live.evaluation.report).toContain('Adjudication (SPEC 6.4)');
 
     const recorded = runRecorded(input(directory));
     if (!recorded.ok) throw new Error(recorded.lines.join('\n'));
     expect(recorded.lines).toEqual(['Recorded AI analysis: model fake-model, recorded at 2000-01-01T00:00:00.000Z.']);
     expect(recorded.evaluation.report).toBe(live.evaluation.report);
     expect(recorded.evaluation.score).toEqual(live.evaluation.score);
-    expect(model.requests).toHaveLength(2);
+    expect(recorded.verdicts).toEqual(live.verdicts);
+    expect(model.requests).toHaveLength(3);
+  });
+
+  it('does not score a dismissed issue, and counts a dismissed real error as wrongly dismissed', async () => {
+    const model = fakeModel({ parsed: nurseryContract() }, verdictOnAll('dismiss', 'Tall, but plausible.'));
+    const live = await runLive({ ...input(temporary()), client: model.client, record: false });
+    if (!live.ok) throw new Error(live.lines.join('\n'));
+    const { score, report } = live.evaluation;
+    // The height of 4000 is a planted error: dismissing it hides a real problem.
+    expect(score).toMatchObject({ dismissed: 1, issues: 7, truePositives: 7, falseNegatives: 1, wronglyDismissed: ['range:36:height_cm:flag'] });
+    expect(score.missed).toEqual(['E6']);
+    expect(report).toMatch(/Dismissed by AI\n[\s\S]*range:36:height_cm:flag\s+range\s+36\s+height_cm\s+YES: wrongly dismissed\s+Tall, but plausible\./);
+  });
+
+  it('stops and writes nothing when an adjudication request fails twice', async () => {
+    const directory = temporary();
+    const run = await runLive({ ...input(directory), client: fakeModel({ parsed: nurseryContract() }, timeout).client, record: true });
+    expect(run.ok).toBe(false);
+    expect(run.lines[0]).toMatch(/^Contract call 1: .* used$/);
+    expect(run.lines.at(-1)).toBe('An adjudication request reached the 60 s timeout on both attempts. No recording was written.');
+    expect(existsSync(path.join(directory, 'nursery.json'))).toBe(false);
+  });
+
+  it('replays a recording made before adjudication existed, with the contract alone', () => {
+    const directory = temporary();
+    const old = { format: 1, dataset: 'nursery', sha256: sha256Of(csvText), recordedAt: '2000-01-01T00:00:00.000Z', model: 'fake-model', settings: {}, calls: [], contract: nurseryContract() };
+    writeFileSync(path.join(directory, 'nursery.json'), JSON.stringify(old));
+    const recorded = runRecorded(input(directory));
+    if (!recorded.ok) throw new Error(recorded.lines.join('\n'));
+    expect(recorded.verdicts).toBeUndefined();
+    expect(recorded.evaluation.report).not.toContain('Adjudication (SPEC 6.4)');
+    expect(recorded.evaluation.report).toBe(evaluate(csvText, truth, 'nursery.dirty.csv', nurseryContract()).report);
   });
 
   it('reports the latencies and writes nothing when both attempts time out', async () => {
@@ -128,8 +164,8 @@ describe('eval:live', () => {
     const run = await runLive({ ...input(directory), client: fakeModel(timeout).client, record: true });
     expect(run.ok).toBe(false);
     expect(run.lines).toHaveLength(3);
-    expect(run.lines[0]).toMatch(/^Model call 1: no answer, \d+\.\d s, .* not used: timeout$/);
-    expect(run.lines[2]).toBe('Both attempts reached the 60 s timeout. No recording was written.');
+    expect(run.lines[0]).toMatch(/^Contract call 1: no answer, \d+\.\d s, .* not used: timeout$/);
+    expect(run.lines[2]).toBe('The contract call reached the 60 s timeout on both attempts. No recording was written.');
     expect(existsSync(path.join(directory, 'nursery.json'))).toBe(false);
   });
 
@@ -141,7 +177,7 @@ describe('eval:live', () => {
 
   it('writes no recording for the held-out run', async () => {
     const directory = temporary();
-    const run = await runLive({ ...input(directory), client: fakeModel({ parsed: nurseryContract() }).client, record: false });
+    const run = await runLive({ ...input(directory), client: fakeModel({ parsed: nurseryContract() }, verdictOnAll('unsure')).client, record: false });
     expect(run.ok).toBe(true);
     expect(run.lines.some((line) => line.startsWith('Recording written'))).toBe(false);
     expect(existsSync(path.join(directory, 'nursery.json'))).toBe(false);

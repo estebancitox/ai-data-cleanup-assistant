@@ -1,7 +1,7 @@
 // The evaluation commands of SPEC §8.3. The mode is the first argument:
 //   npm run eval            rules only, development dataset. Exits with 1 when T1 fails.
-//   npm run eval:recorded   rules and the recorded contract. Calls nothing.
-//   npm run eval:live       rules and a fresh contract; writes the recording. Calls the API.
+//   npm run eval:recorded   rules and the recorded contract and verdicts. Calls nothing.
+//   npm run eval:live       rules and a fresh contract and verdicts; writes the recording. Calls the API.
 //   npm run eval:heldout    the same on the held-out dataset, without a recording. Calls the API.
 // The AI modes exit with 1 only when they could not run. The run file is written whenever a
 // run completes. Pass --no-write to print the report without adding a file under evals/runs/.
@@ -83,6 +83,8 @@ async function main(): Promise<void> {
     ...summary(evaluation),
     thresholds: evaluation.thresholds,
     contract: evaluation.contract,
+    adjudication: evaluation.adjudication,
+    verdicts: run.verdicts,
     r2: evaluation.r2,
   });
 }

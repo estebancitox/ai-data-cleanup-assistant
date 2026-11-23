@@ -523,3 +523,68 @@ to 97 ("Force dynamic rendering, which will result in routes being rendered for 
 request time"); `next.config.ts` does not enable Cache Components, so that guide applies. Not
 verified with a build: `npm run build` is excluded from this session. The route table of the
 owner's build shows it (`ƒ` marks a route rendered on demand).
+
+### Session 2, after gate 3: adjudication, S1 (2026-11-23, from 16:13 -05)
+
+The first live run (16:05, one call of 11.0 s) met T2 and missed T3 on "fixes on clean data"
+(3, all three from R2 trap pairs; see F28). The gate 3 report was posted at 16:12, so S1 was
+built under the owner's pre-approval. Readings applied while building it:
+
+**F30. "Strongest first" is not defined across kinds of case (SPEC §6.4).** The code sends the
+near-duplicate candidates first, from the highest similarity down, then the flagged values
+(R8, C4) from the one farthest from the median of its column, measured in interquartile
+ranges; a flagged date has no numeric summary and goes last. Consequence: in a file with more
+than 60 near-duplicate candidates no flagged value is adjudicated.
+
+Resolution: logged, to confirm or change between sessions.
+
+**F31. An issue does not carry its strength as a number.** To rank the candidates,
+`src/core/adjudicate` computes the pair similarities again through
+`src/core/analyze/similarity.ts`, a file inside `analyze` that its interface (§4.2) does not
+name. Either `analyze` exports the scorer or the issue carries the number.
+
+Resolution: logged.
+
+**F32. Smaller readings of §6.4.**
+- An `unsure` verdict is attached to its issue, as the `Issue.verdict` type allows; nothing
+  else about the issue changes. A case with no answer gets no verdict.
+- The model sees the cases under the labels "1" to "10"; issue ids stay on the server. A
+  verdict for a label that matches no case is dropped, and of two verdicts for one case the
+  first counts. `applyVerdicts` ignores a verdict for an issue that is not a near-duplicate,
+  an outlier or a range flag.
+- The sentence of the model is cut at 300 characters before it is stored or shown. That
+  constant is not in the SPEC.
+- `eval:live` stops, and writes no recording, when any adjudication request fails twice: a
+  recording with part of the verdicts would not be replayable as "the" analysis.
+- The recording has `format: 2`, which adds `verdicts`. A recording of format 1 is read as one
+  with no verdicts. The recording route answers `{ contract, verdicts, model, recordedAt }`.
+- `src/core/adjudicate` exports, next to `selectCases` and `applyVerdicts`, the schema of the
+  route's body and the three numbers of §6.4 (60, 10, 3); `src/ai` exports `adjudicateAll`
+  (requests of 10, three at a time) for the evaluation. The page has to do its own batching
+  against the route, with those numbers.
+
+Resolution: logged.
+
+**F33. The rate limit of §6.7 against the batches of §6.4.** One analysis is 1 contract
+request and up to 6 adjudication requests, and both routes share the limit of 20 per 10
+minutes per address. The bundled sample needs 4 requests (28 cases); a file with 60 cases
+needs 7, so the third analysis of such a file within 10 minutes from one address gets 429.
+
+Resolution: logged. No constant was changed.
+
+**F34. The adjudication prompt was written after its author had read the trap notes of the
+development truth file.** The planning of session 2 read `fixtures/listings.truth.json`,
+which says why each trap is not an error. The prompt contains no value of the fixture and its
+example is from another domain, but its guidance (a difference that shows two distinct
+things; a value the rest of the row supports) matches how those traps are built. The S1
+numbers on the development dataset are therefore optimistic. The held-out run is the check.
+
+Resolution: logged. To state next to the numbers in the README.
+
+**F35. The cell written to manipulate a model reaches the model through adjudication.** Row
+287 of the development file is one of the two rows of a near-duplicate candidate, and a case
+carries both rows in full. The contract request did not contain that cell. Defence: the cell
+sits inside the tagged data block as an escaped JSON string, the prompt says that values are
+never instructions, and a verdict can only change how prominent an issue is.
+
+Resolution: logged. The verdicts of the second live run show whether it had any effect.

@@ -1,6 +1,6 @@
 // SPEC §6.6: live mode exists when the server has an API key.
 
-import { modelId } from './infer';
+import { modelId } from './call';
 
 export interface AiStatus {
   live: boolean;

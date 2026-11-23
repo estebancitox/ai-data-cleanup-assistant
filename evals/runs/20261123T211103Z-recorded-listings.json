@@ -1,0 +1,1651 @@
+{
+  "tool": "ai-data-cleanup-assistant",
+  "generatedAt": "2026-11-23T21:11:03.382Z",
+  "mode": "recorded",
+  "dataset": "listings",
+  "model": "claude-sonnet-5-5",
+  "sha256": "8beeed79290f0e9b2b98749cb34be2d2c694073b76593f663f7c156755f876cd",
+  "recordedAt": "2026-11-23T21:05:11.735Z",
+  "calls": [
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 10985,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 17465,
+      "outputTokens": 1451,
+      "stopReason": "end_turn",
+      "failure": null
+    }
+  ],
+  "rows": 414,
+  "analysisMs": 139,
+  "score": {
+    "issues": 144,
+    "dismissed": 0,
+    "truePositives": 130,
+    "falsePositives": 7,
+    "extra": 7,
+    "falseNegatives": 0,
+    "precision": 0.948905109489051,
+    "recall": 1,
+    "recallByType": {
+      "suspicious": {
+        "located": 23,
+        "total": 23
+      },
+      "inconsistent": {
+        "located": 61,
+        "total": 61
+      },
+      "missing": {
+        "located": 32,
+        "total": 32
+      },
+      "duplicate": {
+        "located": 14,
+        "total": 14
+      }
+    },
+    "recallByKind": {
+      "impossible-value": {
+        "located": 6,
+        "total": 6
+      },
+      "date-format": {
+        "located": 9,
+        "total": 9
+      },
+      "cross-field": {
+        "located": 6,
+        "total": 6
+      },
+      "blank": {
+        "located": 12,
+        "total": 12
+      },
+      "invalid-format": {
+        "located": 6,
+        "total": 6
+      },
+      "semantic-variant": {
+        "located": 17,
+        "total": 17
+      },
+      "near-duplicate": {
+        "located": 8,
+        "total": 8
+      },
+      "exact-duplicate": {
+        "located": 6,
+        "total": 6
+      },
+      "placeholder": {
+        "located": 8,
+        "total": 8
+      },
+      "number-format": {
+        "located": 8,
+        "total": 8
+      },
+      "case-whitespace": {
+        "located": 18,
+        "total": 18
+      },
+      "junk-record": {
+        "located": 3,
+        "total": 3
+      },
+      "placeholder-derivable": {
+        "located": 4,
+        "total": 4
+      },
+      "outlier-typo": {
+        "located": 8,
+        "total": 8
+      },
+      "blank-derivable": {
+        "located": 8,
+        "total": 8
+      },
+      "date-format-ambiguous": {
+        "located": 3,
+        "total": 3
+      }
+    },
+    "byIssueType": {
+      "suspicious": {
+        "truePositives": 16,
+        "falsePositives": 4,
+        "extra": 7
+      },
+      "inconsistent": {
+        "truePositives": 68,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "missing": {
+        "truePositives": 32,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "duplicate": {
+        "truePositives": 14,
+        "falsePositives": 3,
+        "extra": 0
+      }
+    },
+    "byDetector": {
+      "range": {
+        "truePositives": 4,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "date-format": {
+        "truePositives": 12,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "dependency": {
+        "truePositives": 21,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "empty": {
+        "truePositives": 12,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "canonical-value": {
+        "truePositives": 17,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "near-duplicate": {
+        "truePositives": 8,
+        "falsePositives": 3,
+        "extra": 0
+      },
+      "exact-duplicate": {
+        "truePositives": 6,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "placeholder": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "number-format": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "case-variant": {
+        "truePositives": 9,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "outlier": {
+        "truePositives": 9,
+        "falsePositives": 4,
+        "extra": 0
+      },
+      "flagged-value": {
+        "truePositives": 3,
+        "falsePositives": 0,
+        "extra": 7
+      },
+      "whitespace": {
+        "truePositives": 9,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "shape": {
+        "truePositives": 4,
+        "falsePositives": 0,
+        "extra": 0
+      }
+    },
+    "confusion": {
+      "suspicious": {
+        "suspicious": 16,
+        "inconsistent": 7
+      },
+      "inconsistent": {
+        "inconsistent": 61
+      },
+      "missing": {
+        "missing": 32
+      },
+      "duplicate": {
+        "duplicate": 14
+      }
+    },
+    "fixAccuracy": {
+      "correct": 84,
+      "scored": 84
+    },
+    "fabricatedFixes": [],
+    "fixesOnCleanData": [
+      "near-duplicate:54+239::del-239",
+      "near-duplicate:122+301::del-301",
+      "near-duplicate:157+370::del-370"
+    ],
+    "trapsHit": [
+      {
+        "trap": "T01",
+        "kind": "legit-outlier",
+        "issueId": "outlier:43:sqft:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T01",
+        "kind": "legit-outlier",
+        "issueId": "outlier:43:list_price:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T02",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:54+239::del-239",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T03",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:122+301::del-301",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T04",
+        "kind": "similar-not-duplicate",
+        "issueId": "near-duplicate:157+370::del-370",
+        "detector": "near-duplicate"
+      },
+      {
+        "trap": "T08",
+        "kind": "legit-outlier",
+        "issueId": "outlier:316:sqft:flag",
+        "detector": "outlier"
+      },
+      {
+        "trap": "T08",
+        "kind": "legit-outlier",
+        "issueId": "outlier:316:list_price:flag",
+        "detector": "outlier"
+      }
+    ],
+    "wronglyDismissed": [],
+    "located": [
+      {
+        "errorId": "E001",
+        "issueId": "range:1:year_built:flag"
+      },
+      {
+        "errorId": "E002",
+        "issueId": "date-format:3:list_date:set-6db556d6"
+      },
+      {
+        "errorId": "E003",
+        "issueId": "dependency:6:city:set-9a1c8c20"
+      },
+      {
+        "errorId": "E004",
+        "issueId": "empty:13:sqft:flag"
+      },
+      {
+        "errorId": "E005",
+        "issueId": "dependency:15:agent_email:set-d550165e"
+      },
+      {
+        "errorId": "E006",
+        "issueId": "canonical-value:18:city:set-4de8c252"
+      },
+      {
+        "errorId": "E007",
+        "issueId": "near-duplicate:20+376::del-376"
+      },
+      {
+        "errorId": "E008",
+        "issueId": "exact-duplicate:23+236::del-236"
+      },
+      {
+        "errorId": "E009",
+        "issueId": "placeholder:25:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E010",
+        "issueId": "number-format:28:list_price:set-1d57343e"
+      },
+      {
+        "errorId": "E011",
+        "issueId": "near-duplicate:29+259::del-259"
+      },
+      {
+        "errorId": "E012",
+        "issueId": "case-variant:30:city:set-f39d341e"
+      },
+      {
+        "errorId": "E013",
+        "issueId": "near-duplicate:31+356::del-356"
+      },
+      {
+        "errorId": "E014",
+        "issueId": "flagged-value:45:agent_name:flag"
+      },
+      {
+        "errorId": "E015",
+        "issueId": "whitespace:46:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E016",
+        "issueId": "canonical-value:49:status:set-608f893f"
+      },
+      {
+        "errorId": "E017",
+        "issueId": "dependency:50:agent_email:set-6f0801c2"
+      },
+      {
+        "errorId": "E018",
+        "issueId": "near-duplicate:51+341::del-341"
+      },
+      {
+        "errorId": "E019",
+        "issueId": "canonical-value:52:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E020",
+        "issueId": "whitespace:55:city:set-8fb074a1"
+      },
+      {
+        "errorId": "E021",
+        "issueId": "empty:57:sqft:flag"
+      },
+      {
+        "errorId": "E022",
+        "issueId": "outlier:59:list_price:flag"
+      },
+      {
+        "errorId": "E023",
+        "issueId": "shape:60:zip:flag"
+      },
+      {
+        "errorId": "E024",
+        "issueId": "outlier:65:list_price:flag"
+      },
+      {
+        "errorId": "E025",
+        "issueId": "canonical-value:66:status:set-1f89134f"
+      },
+      {
+        "errorId": "E026",
+        "issueId": "dependency:70:agent_email:set-54fc4ab6"
+      },
+      {
+        "errorId": "E027",
+        "issueId": "whitespace:74:status:set-608f893f"
+      },
+      {
+        "errorId": "E028",
+        "issueId": "dependency:77:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E029",
+        "issueId": "case-variant:78:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E030",
+        "issueId": "empty:85:bedrooms:flag"
+      },
+      {
+        "errorId": "E031",
+        "issueId": "canonical-value:89:state:set-81da2487"
+      },
+      {
+        "errorId": "E032",
+        "issueId": "near-duplicate:96+402::del-402"
+      },
+      {
+        "errorId": "E033",
+        "issueId": "placeholder:103:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E034",
+        "issueId": "date-format:105:list_date:set-b9dc266d"
+      },
+      {
+        "errorId": "E035",
+        "issueId": "dependency:106:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E036",
+        "issueId": "case-variant:110:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E037",
+        "issueId": "outlier:118:list_price:flag"
+      },
+      {
+        "errorId": "E038",
+        "issueId": "canonical-value:120:state:set-81da2487"
+      },
+      {
+        "errorId": "E039",
+        "issueId": "exact-duplicate:121+148::del-148"
+      },
+      {
+        "errorId": "E040",
+        "issueId": "canonical-value:123:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E041",
+        "issueId": "canonical-value:126:property_type:set-7381937b"
+      },
+      {
+        "errorId": "E042",
+        "issueId": "number-format:128:list_price:set-9456df9a"
+      },
+      {
+        "errorId": "E043",
+        "issueId": "empty:134:sqft:flag"
+      },
+      {
+        "errorId": "E044",
+        "issueId": "date-format:138:list_date:set-bee0ab7a"
+      },
+      {
+        "errorId": "E045",
+        "issueId": "outlier:139:bathrooms:flag"
+      },
+      {
+        "errorId": "E046",
+        "issueId": "dependency:141:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E047",
+        "issueId": "near-duplicate:146+287::del-287"
+      },
+      {
+        "errorId": "E048",
+        "issueId": "dependency:150:city:set-9a1c8c20"
+      },
+      {
+        "errorId": "E049",
+        "issueId": "case-variant:155:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E050",
+        "issueId": "canonical-value:158:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E051",
+        "issueId": "empty:159:year_built:flag"
+      },
+      {
+        "errorId": "E052",
+        "issueId": "number-format:174:list_price:set-6c1d6536"
+      },
+      {
+        "errorId": "E053",
+        "issueId": "exact-duplicate:178+266::del-266"
+      },
+      {
+        "errorId": "E054",
+        "issueId": "dependency:182:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E055",
+        "issueId": "date-format:183:list_date:set-3f018f83"
+      },
+      {
+        "errorId": "E056",
+        "issueId": "range:189:year_built:flag"
+      },
+      {
+        "errorId": "E057",
+        "issueId": "number-format:191:list_price:set-251971dc"
+      },
+      {
+        "errorId": "E058",
+        "issueId": "date-format:192:list_date:set-4b03e0fe"
+      },
+      {
+        "errorId": "E059",
+        "issueId": "whitespace:193:property_type:set-7381937b"
+      },
+      {
+        "errorId": "E060",
+        "issueId": "dependency:194:agent_email:set-707cf442"
+      },
+      {
+        "errorId": "E061",
+        "issueId": "whitespace:197:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E062",
+        "issueId": "whitespace:199:status:set-608f893f"
+      },
+      {
+        "errorId": "E063",
+        "issueId": "exact-duplicate:205+297::del-297"
+      },
+      {
+        "errorId": "E064",
+        "issueId": "range:207:sqft:flag"
+      },
+      {
+        "errorId": "E065",
+        "issueId": "placeholder:210:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E066",
+        "issueId": "near-duplicate:212+289::del-289"
+      },
+      {
+        "errorId": "E067",
+        "issueId": "placeholder:216:sqft:set-811c9dc5"
+      },
+      {
+        "errorId": "E068",
+        "issueId": "outlier:218:sqft:flag"
+      },
+      {
+        "errorId": "E069",
+        "issueId": "whitespace:219:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E070",
+        "issueId": "case-variant:220:city:set-9a1c8c20"
+      },
+      {
+        "errorId": "E071",
+        "issueId": "dependency:222:city:set-4acbd074"
+      },
+      {
+        "errorId": "E072",
+        "issueId": "canonical-value:223:state:set-81da2487"
+      },
+      {
+        "errorId": "E073",
+        "issueId": "near-duplicate:225+321::del-321"
+      },
+      {
+        "errorId": "E074",
+        "issueId": "date-format:226:list_date:set-9fd5598f"
+      },
+      {
+        "errorId": "E075",
+        "issueId": "dependency:230:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E076",
+        "issueId": "shape:231:zip:flag"
+      },
+      {
+        "errorId": "E077",
+        "issueId": "canonical-value:234:state:set-81da2487"
+      },
+      {
+        "errorId": "E078",
+        "issueId": "empty:241:bedrooms:flag"
+      },
+      {
+        "errorId": "E079",
+        "issueId": "dependency:244:agent_email:set-b7542368"
+      },
+      {
+        "errorId": "E080",
+        "issueId": "canonical-value:245:city:set-4acbd074"
+      },
+      {
+        "errorId": "E081",
+        "issueId": "exact-duplicate:254+299::del-299"
+      },
+      {
+        "errorId": "E082",
+        "issueId": "number-format:257:list_price:set-b2a03426"
+      },
+      {
+        "errorId": "E083",
+        "issueId": "dependency:261:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E084",
+        "issueId": "outlier:263:sqft:flag"
+      },
+      {
+        "errorId": "E085",
+        "issueId": "number-format:265:list_price:set-e65769a9"
+      },
+      {
+        "errorId": "E086",
+        "issueId": "case-variant:271:property_type:set-e351f30b"
+      },
+      {
+        "errorId": "E087",
+        "issueId": "placeholder:273:remarks:set-811c9dc5"
+      },
+      {
+        "errorId": "E088",
+        "issueId": "case-variant:274:status:set-1f89134f"
+      },
+      {
+        "errorId": "E089",
+        "issueId": "flagged-value:277:address:flag"
+      },
+      {
+        "errorId": "E090",
+        "issueId": "case-variant:284:city:set-f4c62a66"
+      },
+      {
+        "errorId": "E091",
+        "issueId": "dependency:285:agent_email:set-d550165e"
+      },
+      {
+        "errorId": "E092",
+        "issueId": "canonical-value:291:status:set-608f893f"
+      },
+      {
+        "errorId": "E093",
+        "issueId": "empty:293:year_built:flag"
+      },
+      {
+        "errorId": "E094",
+        "issueId": "dependency:294:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E095",
+        "issueId": "canonical-value:307:city:set-fb948fc1"
+      },
+      {
+        "errorId": "E096",
+        "issueId": "whitespace:309:status:set-a579599b"
+      },
+      {
+        "errorId": "E097",
+        "issueId": "empty:312:year_built:flag"
+      },
+      {
+        "errorId": "E098",
+        "issueId": "date-format:313:list_date:set-42981b0f"
+      },
+      {
+        "errorId": "E099",
+        "issueId": "date-format:327:list_date:set-8b2cb7eb"
+      },
+      {
+        "errorId": "E100",
+        "issueId": "range:330:bedrooms:flag"
+      },
+      {
+        "errorId": "E101",
+        "issueId": "flagged-value:334:agent_name:flag"
+      },
+      {
+        "errorId": "E102",
+        "issueId": "date-format:337:list_date:set-409817e9"
+      },
+      {
+        "errorId": "E103",
+        "issueId": "date-format:339:list_date:set-fdadeac1"
+      },
+      {
+        "errorId": "E104",
+        "issueId": "dependency:343:agent_email:set-c710b0b1"
+      },
+      {
+        "errorId": "E105",
+        "issueId": "date-format:345:list_date:set-d19d795a"
+      },
+      {
+        "errorId": "E106",
+        "issueId": "canonical-value:346:state:set-81da2487"
+      },
+      {
+        "errorId": "E107",
+        "issueId": "shape:347:bedrooms:flag"
+      },
+      {
+        "errorId": "E108",
+        "issueId": "number-format:352:list_price:set-44db380d"
+      },
+      {
+        "errorId": "E109",
+        "issueId": "case-variant:354:status:set-608f893f"
+      },
+      {
+        "errorId": "E110",
+        "issueId": "canonical-value:358:property_type:set-16f58e76"
+      },
+      {
+        "errorId": "E111",
+        "issueId": "number-format:364:list_price:set-58b2a659"
+      },
+      {
+        "errorId": "E112",
+        "issueId": "placeholder:366:remarks:set-811c9dc5"
+      },
+      {
+        "errorId": "E113",
+        "issueId": "shape:369:zip:flag"
+      },
+      {
+        "errorId": "E114",
+        "issueId": "date-format:373:list_date:set-addc1389"
+      },
+      {
+        "errorId": "E115",
+        "issueId": "exact-duplicate:375+409::del-409"
+      },
+      {
+        "errorId": "E116",
+        "issueId": "empty:377:bedrooms:flag"
+      },
+      {
+        "errorId": "E117",
+        "issueId": "outlier:380:list_price:flag"
+      },
+      {
+        "errorId": "E118",
+        "issueId": "placeholder:383:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E119",
+        "issueId": "empty:387:year_built:flag"
+      },
+      {
+        "errorId": "E120",
+        "issueId": "outlier:388:list_price:flag"
+      },
+      {
+        "errorId": "E121",
+        "issueId": "outlier:390:list_price:flag"
+      },
+      {
+        "errorId": "E122",
+        "issueId": "canonical-value:392:property_type:set-16f58e76"
+      },
+      {
+        "errorId": "E123",
+        "issueId": "dependency:394:agent_email:set-f4cccfdc"
+      },
+      {
+        "errorId": "E124",
+        "issueId": "dependency:397:agent_email:set-f4cccfdc"
+      },
+      {
+        "errorId": "E125",
+        "issueId": "empty:399:sqft:flag"
+      },
+      {
+        "errorId": "E126",
+        "issueId": "dependency:400:city:set-8fb074a1"
+      },
+      {
+        "errorId": "E127",
+        "issueId": "whitespace:405:property_type:set-7381937b"
+      },
+      {
+        "errorId": "E128",
+        "issueId": "empty:408:sqft:flag"
+      },
+      {
+        "errorId": "E129",
+        "issueId": "placeholder:412:year_built:set-811c9dc5"
+      },
+      {
+        "errorId": "E130",
+        "issueId": "dependency:414:city:set-fb948fc1"
+      }
+    ],
+    "missed": [],
+    "falsePositiveIssues": [
+      {
+        "issueId": "outlier:43:sqft:flag",
+        "detector": "outlier",
+        "rowIds": [
+          43
+        ],
+        "column": "sqft"
+      },
+      {
+        "issueId": "outlier:43:list_price:flag",
+        "detector": "outlier",
+        "rowIds": [
+          43
+        ],
+        "column": "list_price"
+      },
+      {
+        "issueId": "near-duplicate:54+239::del-239",
+        "detector": "near-duplicate",
+        "rowIds": [
+          54,
+          239
+        ],
+        "column": null
+      },
+      {
+        "issueId": "near-duplicate:122+301::del-301",
+        "detector": "near-duplicate",
+        "rowIds": [
+          122,
+          301
+        ],
+        "column": null
+      },
+      {
+        "issueId": "near-duplicate:157+370::del-370",
+        "detector": "near-duplicate",
+        "rowIds": [
+          157,
+          370
+        ],
+        "column": null
+      },
+      {
+        "issueId": "outlier:316:sqft:flag",
+        "detector": "outlier",
+        "rowIds": [
+          316
+        ],
+        "column": "sqft"
+      },
+      {
+        "issueId": "outlier:316:list_price:flag",
+        "detector": "outlier",
+        "rowIds": [
+          316
+        ],
+        "column": "list_price"
+      }
+    ]
+  },
+  "thresholds": [
+    {
+      "id": "T2",
+      "check": "overall precision",
+      "measured": "0.949",
+      "threshold": "0.90 or more",
+      "pass": true
+    },
+    {
+      "id": "T2",
+      "check": "overall recall",
+      "measured": "1.000",
+      "threshold": "0.80 or more",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fabricated fixes",
+      "measured": "0",
+      "threshold": "0",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fix accuracy",
+      "measured": "1.000 (84 of 84)",
+      "threshold": "0.95 or more",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fixes on clean data",
+      "measured": "3",
+      "threshold": "2 or fewer",
+      "pass": false
+    }
+  ],
+  "contract": {
+    "proposed": {
+      "columns": [
+        {
+          "name": "listing_id",
+          "meaning": "Unique listing number",
+          "role": "identifier",
+          "format": "none"
+        },
+        {
+          "name": "address",
+          "meaning": "Street address of the property",
+          "role": "free-text",
+          "format": "none"
+        },
+        {
+          "name": "city",
+          "meaning": "City where the property is located",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "state",
+          "meaning": "US state of the property",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "zip",
+          "meaning": "Postal ZIP code",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "property_type",
+          "meaning": "Type of property",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "bedrooms",
+          "meaning": "Number of bedrooms",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "bathrooms",
+          "meaning": "Number of bathrooms",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "sqft",
+          "meaning": "Living area in square feet",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "year_built",
+          "meaning": "Year the property was built",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "list_price",
+          "meaning": "Listing price in dollars",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "list_date",
+          "meaning": "Date the property was listed",
+          "role": "date",
+          "format": "none"
+        },
+        {
+          "name": "status",
+          "meaning": "Current listing status",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "agent_name",
+          "meaning": "Name of the listing agent",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "agent_email",
+          "meaning": "Email address of the listing agent",
+          "role": "other",
+          "format": "email"
+        },
+        {
+          "name": "remarks",
+          "meaning": "Free-text notes about the listing",
+          "role": "free-text",
+          "format": "none"
+        }
+      ],
+      "missingTokens": [
+        {
+          "column": "agent_email",
+          "token": "unknown"
+        }
+      ],
+      "canonicalGroups": [
+        {
+          "column": "city",
+          "values": [
+            "Fort Collins",
+            "Ft. Collins",
+            "Fort  Collins"
+          ],
+          "reason": "Same city written with an abbreviation or extra space."
+        },
+        {
+          "column": "city",
+          "values": [
+            "Denver",
+            "Denvr"
+          ],
+          "reason": "Misspelling of Denver."
+        },
+        {
+          "column": "city",
+          "values": [
+            "Boulder",
+            "Bolder"
+          ],
+          "reason": "Misspelling of Boulder."
+        },
+        {
+          "column": "city",
+          "values": [
+            "Colorado Springs",
+            "Colo Springs"
+          ],
+          "reason": "Abbreviation of Colorado Springs."
+        },
+        {
+          "column": "state",
+          "values": [
+            "CO",
+            "Colorado",
+            "Colo."
+          ],
+          "reason": "Different spellings of the state Colorado."
+        },
+        {
+          "column": "property_type",
+          "values": [
+            "Single Family",
+            "SFR"
+          ],
+          "reason": "SFR is an abbreviation of single family."
+        },
+        {
+          "column": "property_type",
+          "values": [
+            "Condo",
+            "Condominium"
+          ],
+          "reason": "Condominium is the long form of Condo."
+        },
+        {
+          "column": "property_type",
+          "values": [
+            "Townhouse",
+            "Town Home"
+          ],
+          "reason": "Same property type written differently."
+        },
+        {
+          "column": "status",
+          "values": [
+            "Active",
+            "Actv"
+          ],
+          "reason": "Actv is an abbreviation of Active."
+        },
+        {
+          "column": "status",
+          "values": [
+            "Sold",
+            "Closed"
+          ],
+          "reason": "Closed and Sold describe the same status."
+        }
+      ],
+      "suspiciousValues": [
+        {
+          "column": "address",
+          "value": "123 Test St",
+          "reason": "Looks like test data."
+        },
+        {
+          "column": "agent_name",
+          "value": "Test Agent",
+          "reason": "Looks like test data."
+        },
+        {
+          "column": "agent_email",
+          "value": "test@test.com",
+          "reason": "Placeholder test email."
+        },
+        {
+          "column": "remarks",
+          "value": "TEST LISTING - DO NOT PUBLISH",
+          "reason": "Marks a test listing."
+        }
+      ],
+      "ranges": [
+        {
+          "column": "bedrooms",
+          "min": "0",
+          "max": "",
+          "reason": "A count of bedrooms cannot be negative."
+        },
+        {
+          "column": "bathrooms",
+          "min": "0",
+          "max": "",
+          "reason": "A count of bathrooms cannot be negative."
+        },
+        {
+          "column": "sqft",
+          "min": "0",
+          "max": "",
+          "reason": "Area cannot be negative."
+        },
+        {
+          "column": "year_built",
+          "min": "1600",
+          "max": "2026",
+          "reason": "A house cannot be built before settlement or in the future."
+        },
+        {
+          "column": "list_price",
+          "min": "0",
+          "max": "",
+          "reason": "A price cannot be negative."
+        }
+      ],
+      "dependencies": [
+        {
+          "determinant": "agent_name",
+          "dependent": "agent_email",
+          "reason": "Each agent has one email address."
+        },
+        {
+          "determinant": "zip",
+          "dependent": "city",
+          "reason": "A ZIP code belongs to one city."
+        },
+        {
+          "determinant": "listing_id",
+          "dependent": "address",
+          "reason": "Each listing has one address."
+        }
+      ]
+    },
+    "verified": {
+      "columns": [
+        {
+          "name": "listing_id",
+          "meaning": "Unique listing number",
+          "role": "identifier",
+          "format": "none"
+        },
+        {
+          "name": "address",
+          "meaning": "Street address of the property",
+          "role": "free-text",
+          "format": "none"
+        },
+        {
+          "name": "city",
+          "meaning": "City where the property is located",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "state",
+          "meaning": "US state of the property",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "zip",
+          "meaning": "Postal ZIP code",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "property_type",
+          "meaning": "Type of property",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "bedrooms",
+          "meaning": "Number of bedrooms",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "bathrooms",
+          "meaning": "Number of bathrooms",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "sqft",
+          "meaning": "Living area in square feet",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "year_built",
+          "meaning": "Year the property was built",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "list_price",
+          "meaning": "Listing price in dollars",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "list_date",
+          "meaning": "Date the property was listed",
+          "role": "date",
+          "format": "none"
+        },
+        {
+          "name": "status",
+          "meaning": "Current listing status",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "agent_name",
+          "meaning": "Name of the listing agent",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "agent_email",
+          "meaning": "Email address of the listing agent",
+          "role": "other",
+          "format": "email"
+        },
+        {
+          "name": "remarks",
+          "meaning": "Free-text notes about the listing",
+          "role": "free-text",
+          "format": "none"
+        }
+      ],
+      "missingTokens": [
+        {
+          "column": "agent_email",
+          "token": "unknown",
+          "support": "1 of 414 cells hold this token"
+        }
+      ],
+      "canonicalGroups": [
+        {
+          "column": "city",
+          "canonical": "Fort Collins",
+          "variants": [
+            "Ft. Collins"
+          ],
+          "reason": "Same city written with an abbreviation or extra space.",
+          "support": "\"Fort Collins\" fills 40 cells; the other spellings fill 1"
+        },
+        {
+          "column": "city",
+          "canonical": "Denver",
+          "variants": [
+            "Denvr"
+          ],
+          "reason": "Misspelling of Denver.",
+          "support": "\"Denver\" fills 117 cells; the other spellings fill 1"
+        },
+        {
+          "column": "city",
+          "canonical": "Boulder",
+          "variants": [
+            "Bolder"
+          ],
+          "reason": "Misspelling of Boulder.",
+          "support": "\"Boulder\" fills 24 cells; the other spellings fill 1"
+        },
+        {
+          "column": "city",
+          "canonical": "Colorado Springs",
+          "variants": [
+            "Colo Springs"
+          ],
+          "reason": "Abbreviation of Colorado Springs.",
+          "support": "\"Colorado Springs\" fills 35 cells; the other spellings fill 1"
+        },
+        {
+          "column": "state",
+          "canonical": "CO",
+          "variants": [
+            "Colo.",
+            "Colorado"
+          ],
+          "reason": "Different spellings of the state Colorado.",
+          "support": "\"CO\" fills 409 cells; the other spellings fill 5"
+        },
+        {
+          "column": "property_type",
+          "canonical": "Single Family",
+          "variants": [
+            "SFR"
+          ],
+          "reason": "SFR is an abbreviation of single family.",
+          "support": "\"Single Family\" fills 208 cells; the other spellings fill 2"
+        },
+        {
+          "column": "property_type",
+          "canonical": "Condo",
+          "variants": [
+            "Condominium"
+          ],
+          "reason": "Condominium is the long form of Condo.",
+          "support": "\"Condo\" fills 93 cells; the other spellings fill 2"
+        },
+        {
+          "column": "property_type",
+          "canonical": "Townhouse",
+          "variants": [
+            "Town Home"
+          ],
+          "reason": "Same property type written differently.",
+          "support": "\"Townhouse\" fills 87 cells; the other spellings fill 1"
+        },
+        {
+          "column": "status",
+          "canonical": "Active",
+          "variants": [
+            "Actv"
+          ],
+          "reason": "Actv is an abbreviation of Active.",
+          "support": "\"Active\" fills 193 cells; the other spellings fill 1"
+        },
+        {
+          "column": "status",
+          "canonical": "Sold",
+          "variants": [
+            "Closed"
+          ],
+          "reason": "Closed and Sold describe the same status.",
+          "support": "\"Sold\" fills 139 cells; the other spellings fill 2"
+        }
+      ],
+      "suspiciousValues": [
+        {
+          "column": "address",
+          "value": "123 Test St",
+          "reason": "Looks like test data.",
+          "support": "1 of 414 rows hold this value"
+        },
+        {
+          "column": "agent_name",
+          "value": "Test Agent",
+          "reason": "Looks like test data.",
+          "support": "3 of 414 rows hold this value"
+        },
+        {
+          "column": "agent_email",
+          "value": "test@test.com",
+          "reason": "Placeholder test email.",
+          "support": "3 of 414 rows hold this value"
+        },
+        {
+          "column": "remarks",
+          "value": "TEST LISTING - DO NOT PUBLISH",
+          "reason": "Marks a test listing.",
+          "support": "3 of 414 rows hold this value"
+        }
+      ],
+      "ranges": [
+        {
+          "column": "bedrooms",
+          "min": "0",
+          "max": "",
+          "reason": "A count of bedrooms cannot be negative.",
+          "support": "410 of 411 values are inside"
+        },
+        {
+          "column": "bathrooms",
+          "min": "0",
+          "max": "",
+          "reason": "A count of bathrooms cannot be negative.",
+          "support": "414 of 414 values are inside"
+        },
+        {
+          "column": "sqft",
+          "min": "0",
+          "max": "",
+          "reason": "Area cannot be negative.",
+          "support": "405 of 406 values are inside"
+        },
+        {
+          "column": "year_built",
+          "min": "1600",
+          "max": "2026",
+          "reason": "A house cannot be built before settlement or in the future.",
+          "support": "405 of 407 values are inside"
+        },
+        {
+          "column": "list_price",
+          "min": "0",
+          "max": "",
+          "reason": "A price cannot be negative.",
+          "support": "414 of 414 values are inside"
+        }
+      ],
+      "dependencies": [
+        {
+          "determinant": "agent_name",
+          "dependent": "agent_email",
+          "reason": "Each agent has one email address.",
+          "support": "405 of 408 rows (99.3%) have the most common agent_email for their agent_name; 408 rows are in groups of 3 or more"
+        },
+        {
+          "determinant": "zip",
+          "dependent": "city",
+          "reason": "A ZIP code belongs to one city.",
+          "support": "399 of 405 rows (98.5%) have the most common city for their zip; 403 rows are in groups of 3 or more"
+        }
+      ],
+      "rejected": [
+        {
+          "rule": "dependency",
+          "summary": "listing_id -> address",
+          "reason": "0 rows are in groups of 3 or more; 20 are needed"
+        }
+      ]
+    }
+  },
+  "r2": {
+    "threshold": 0.9,
+    "planted": [
+      {
+        "id": "E007",
+        "kind": "near-duplicate",
+        "rows": [
+          20,
+          376
+        ],
+        "similarity": 0.9574214498736575,
+        "reported": true
+      },
+      {
+        "id": "E008",
+        "kind": "exact-duplicate",
+        "rows": [
+          23,
+          236
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E011",
+        "kind": "near-duplicate",
+        "rows": [
+          29,
+          259
+        ],
+        "similarity": 0.9662919811499788,
+        "reported": true
+      },
+      {
+        "id": "E013",
+        "kind": "near-duplicate",
+        "rows": [
+          31,
+          356
+        ],
+        "similarity": 0.940752522106617,
+        "reported": true
+      },
+      {
+        "id": "E018",
+        "kind": "near-duplicate",
+        "rows": [
+          51,
+          341
+        ],
+        "similarity": 0.9387126929999616,
+        "reported": true
+      },
+      {
+        "id": "E032",
+        "kind": "near-duplicate",
+        "rows": [
+          96,
+          402
+        ],
+        "similarity": 0.9314988912947084,
+        "reported": true
+      },
+      {
+        "id": "E039",
+        "kind": "exact-duplicate",
+        "rows": [
+          121,
+          148
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E047",
+        "kind": "near-duplicate",
+        "rows": [
+          146,
+          287
+        ],
+        "similarity": 0.9357942498094836,
+        "reported": true
+      },
+      {
+        "id": "E053",
+        "kind": "exact-duplicate",
+        "rows": [
+          178,
+          266
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E063",
+        "kind": "exact-duplicate",
+        "rows": [
+          205,
+          297
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E066",
+        "kind": "near-duplicate",
+        "rows": [
+          212,
+          289
+        ],
+        "similarity": 0.953691395898919,
+        "reported": true
+      },
+      {
+        "id": "E073",
+        "kind": "near-duplicate",
+        "rows": [
+          225,
+          321
+        ],
+        "similarity": 0.9682748057882155,
+        "reported": true
+      },
+      {
+        "id": "E081",
+        "kind": "exact-duplicate",
+        "rows": [
+          254,
+          299
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E115",
+        "kind": "exact-duplicate",
+        "rows": [
+          375,
+          409
+        ],
+        "similarity": 1,
+        "reported": true
+      }
+    ],
+    "trapPairs": [
+      {
+        "id": "T02",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          54,
+          239
+        ],
+        "similarity": 0.9633937807580379,
+        "reported": true
+      },
+      {
+        "id": "T03",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          122,
+          301
+        ],
+        "similarity": 0.9022429671762989,
+        "reported": true
+      },
+      {
+        "id": "T04",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          157,
+          370
+        ],
+        "similarity": 0.9067923851858757,
+        "reported": true
+      },
+      {
+        "id": "T07",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          314,
+          350
+        ],
+        "similarity": 0.8999010232887014,
+        "reported": false
+      }
+    ],
+    "otherAbove": [],
+    "nextBelow": {
+      "rowIds": [
+        314,
+        350
+      ],
+      "similarity": 0.8999010232887014
+    },
+    "nextOtherBelow": {
+      "rowIds": [
+        277,
+        334
+      ],
+      "similarity": 0.8593409225383112
+    }
+  }
+}

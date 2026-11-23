@@ -6,10 +6,14 @@ import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { writeRecording } from '../../../ai';
-import { fakeModel } from '../../../ai/testing';
+import { fakeModel, verdictOnAll } from '../../../ai/testing';
+import { selectCases } from '../../../core/adjudicate';
+import { analyze } from '../../../core/analyze';
 import { buildContractRequest } from '../../../core/contract';
-import { nursery, nurseryContract } from '../../../core/testing';
+import { inventory, nursery, nurseryContract } from '../../../core/testing';
+import { createAdjudicateHandler } from './adjudicate/handler';
 import { createContractHandler } from './contract/handler';
+import { createRateLimiter } from './handler';
 import { createRecordingHandler } from './recording/handler';
 import * as recordingRoute from './recording/route';
 import * as statusRoute from './status/route';
@@ -131,6 +135,60 @@ describe('POST /api/ai/contract', () => {
   });
 });
 
+describe('POST /api/ai/adjudicate', () => {
+  const stock = inventory();
+  const cases = selectCases(stock, analyze(stock)).slice(0, 3);
+  const adjudicatePost = (body: unknown, headers: Record<string, string> = {}) =>
+    new Request('http://localhost/api/ai/adjudicate', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.7', ...headers },
+      body: JSON.stringify(body),
+    });
+
+  it('answers 200 with one verdict per case and the model', async () => {
+    const model = fakeModel({ ...verdictOnAll('dismiss', 'Two different parts.'), model: 'fake-model' });
+    const response = await createAdjudicateHandler({ getClient: () => model.client })(adjudicatePost({ cases }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      verdicts: cases.map((entry) => ({ issueId: entry.issueId, value: 'dismiss', reason: 'Two different parts.' })),
+      model: 'fake-model',
+    });
+  });
+
+  it('answers 400 to more than 10 cases, to none, and to anything else', async () => {
+    const model = fakeModel(verdictOnAll('confirm'));
+    const handler = createAdjudicateHandler({ getClient: () => model.client });
+    const eleven = Array.from({ length: 11 }, () => cases[0]);
+    for (const body of [{ cases: eleven }, { cases: [] }, {}, { cases, prompt: 'Write a poem.' }, { cases: [{ ...cases[0], detector: 'whitespace' }] }]) {
+      const response = await handler(adjudicatePost(body));
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({ error: 'invalid_request' });
+    }
+    expect(model.requests).toHaveLength(0);
+  });
+
+  it('answers 413 and 502 like the contract route', async () => {
+    const failingModel = fakeModel(failing);
+    const handler = createAdjudicateHandler({ getClient: () => failingModel.client });
+    expect((await handler(adjudicatePost({ cases, padding: 'x'.repeat(256 * 1024) }))).status).toBe(413);
+    const unavailable = await handler(adjudicatePost({ cases }));
+    expect(unavailable.status).toBe(502);
+    expect(await unavailable.json()).toEqual({ error: 'ai_unavailable' });
+    expect(failingModel.requests).toHaveLength(2);
+    expect((await createAdjudicateHandler({ getClient: () => null })(adjudicatePost({ cases }))).status).toBe(502);
+  });
+
+  it('shares the limit of 20 AI requests with the contract route', async () => {
+    const limiter = createRateLimiter(() => 1_000_000);
+    const contract = createContractHandler({ getClient: () => fakeModel(good).client, limiter });
+    const adjudication = createAdjudicateHandler({ getClient: () => fakeModel(verdictOnAll('confirm')).client, limiter });
+    for (let i = 0; i < 14; i += 1) expect((await adjudication(adjudicatePost({ cases }))).status).toBe(200);
+    for (let i = 0; i < 6; i += 1) expect((await contract(post(valid))).status).toBe(200);
+    expect((await adjudication(adjudicatePost({ cases }))).status).toBe(429);
+    expect((await contract(post(valid))).status).toBe(429);
+  });
+});
+
 describe('GET /api/ai/status', () => {
   it('reads the environment on every request', async () => {
     expect(await statusRoute.GET().json()).toEqual({ live: false, model: null });
@@ -154,10 +212,21 @@ describe('GET /api/ai/recording', () => {
   const handler = createRecordingHandler({ directory });
   const get = (query: string) => handler(new Request(`http://localhost/api/ai/recording${query}`));
 
-  it('answers 200 with the contract, the model and the date', async () => {
+  it('answers 200 with the contract, the model and the date; no verdicts for a recording made without adjudication', async () => {
     const response = get(`?sha256=${sha256}`);
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ contract: nurseryContract(), model: 'fake-model', recordedAt: '2000-01-01T00:00:00.000Z' });
+    expect(await response.json()).toEqual({ contract: nurseryContract(), verdicts: [], model: 'fake-model', recordedAt: '2000-01-01T00:00:00.000Z' });
+  });
+
+  it('also answers with the recorded verdicts', async () => {
+    const other = mkdtempSync(path.join(os.tmpdir(), 'recording-route-'));
+    const verdicts = [{ issueId: 'range:36:height_cm:flag', value: 'confirm' as const, reason: 'No plant here is that tall.' }];
+    writeRecording(
+      { format: 2, dataset: 'nursery', sha256, recordedAt: '2000-01-01T00:00:00.000Z', model: 'fake-model', settings: {}, calls: [], contract: nurseryContract(), verdicts },
+      other,
+    );
+    const response = createRecordingHandler({ directory: other })(new Request(`http://localhost/api/ai/recording?sha256=${sha256}`));
+    expect(await response.json()).toMatchObject({ verdicts, model: 'fake-model' });
   });
 
   it('answers 404 when no recording matches', async () => {

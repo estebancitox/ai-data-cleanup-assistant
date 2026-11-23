@@ -1,8 +1,8 @@
 {
-  "format": 1,
+  "format": 2,
   "dataset": "listings",
   "sha256": "8beeed79290f0e9b2b98749cb34be2d2c694073b76593f663f7c156755f876cd",
-  "recordedAt": "2026-11-23T21:05:11.735Z",
+  "recordedAt": "2026-11-23T21:26:11.502Z",
   "model": "claude-sonnet-5-5",
   "settings": {
     "maxTokens": 16000,
@@ -15,10 +15,40 @@
     {
       "attempt": 1,
       "ok": true,
-      "latencyMs": 10985,
+      "latencyMs": 10013,
       "model": "claude-sonnet-5-5",
       "inputTokens": 17465,
-      "outputTokens": 1451,
+      "outputTokens": 1503,
+      "stopReason": "end_turn",
+      "failure": null
+    },
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 6079,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 5762,
+      "outputTokens": 626,
+      "stopReason": "end_turn",
+      "failure": null
+    },
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 6117,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 4675,
+      "outputTokens": 701,
+      "stopReason": "end_turn",
+      "failure": null
+    },
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 5390,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 3829,
+      "outputTokens": 550,
       "stopReason": "end_turn",
       "failure": null
     }
@@ -57,7 +87,7 @@
       },
       {
         "name": "property_type",
-        "meaning": "Type of property",
+        "meaning": "Kind of property",
         "role": "category",
         "format": "none"
       },
@@ -81,13 +111,13 @@
       },
       {
         "name": "year_built",
-        "meaning": "Year the property was built",
+        "meaning": "Year the building was built",
         "role": "measure",
         "format": "none"
       },
       {
         "name": "list_price",
-        "meaning": "Listing price in dollars",
+        "meaning": "Asking price in dollars",
         "role": "measure",
         "format": "none"
       },
@@ -99,7 +129,7 @@
       },
       {
         "name": "status",
-        "meaning": "Current listing status",
+        "meaning": "Listing status",
         "role": "category",
         "format": "none"
       },
@@ -117,7 +147,7 @@
       },
       {
         "name": "remarks",
-        "meaning": "Free-text notes about the listing",
+        "meaning": "Free-text listing remarks",
         "role": "free-text",
         "format": "none"
       }
@@ -133,26 +163,9 @@
         "column": "city",
         "values": [
           "Fort Collins",
-          "Ft. Collins",
-          "Fort  Collins"
+          "Ft. Collins"
         ],
-        "reason": "Same city written with an abbreviation or extra space."
-      },
-      {
-        "column": "city",
-        "values": [
-          "Denver",
-          "Denvr"
-        ],
-        "reason": "Misspelling of Denver."
-      },
-      {
-        "column": "city",
-        "values": [
-          "Boulder",
-          "Bolder"
-        ],
-        "reason": "Misspelling of Boulder."
+        "reason": "Ft. Collins is an abbreviation of Fort Collins."
       },
       {
         "column": "city",
@@ -160,7 +173,23 @@
           "Colorado Springs",
           "Colo Springs"
         ],
-        "reason": "Abbreviation of Colorado Springs."
+        "reason": "Colo Springs is an abbreviation of Colorado Springs."
+      },
+      {
+        "column": "city",
+        "values": [
+          "Boulder",
+          "Bolder"
+        ],
+        "reason": "Bolder is a misspelling of Boulder."
+      },
+      {
+        "column": "city",
+        "values": [
+          "Denver",
+          "Denvr"
+        ],
+        "reason": "Denvr is a misspelling of Denver."
       },
       {
         "column": "state",
@@ -169,7 +198,7 @@
           "Colorado",
           "Colo."
         ],
-        "reason": "Different spellings of the state Colorado."
+        "reason": "All are ways of writing Colorado."
       },
       {
         "column": "property_type",
@@ -177,7 +206,7 @@
           "Single Family",
           "SFR"
         ],
-        "reason": "SFR is an abbreviation of single family."
+        "reason": "SFR abbreviates single family residence."
       },
       {
         "column": "property_type",
@@ -185,7 +214,7 @@
           "Condo",
           "Condominium"
         ],
-        "reason": "Condominium is the long form of Condo."
+        "reason": "Condominium is the full word for Condo."
       },
       {
         "column": "property_type",
@@ -209,7 +238,7 @@
           "Sold",
           "Closed"
         ],
-        "reason": "Closed and Sold describe the same status."
+        "reason": "A closed listing is a sold one."
       }
     ],
     "suspiciousValues": [
@@ -239,31 +268,37 @@
         "column": "bedrooms",
         "min": "0",
         "max": "",
-        "reason": "A count of bedrooms cannot be negative."
+        "reason": "A count of rooms cannot be negative."
       },
       {
         "column": "bathrooms",
         "min": "0",
         "max": "",
-        "reason": "A count of bathrooms cannot be negative."
+        "reason": "A count of rooms cannot be negative."
       },
       {
         "column": "sqft",
         "min": "0",
         "max": "",
-        "reason": "Area cannot be negative."
+        "reason": "An area cannot be negative."
       },
       {
         "column": "year_built",
         "min": "1600",
         "max": "2026",
-        "reason": "A house cannot be built before settlement or in the future."
+        "reason": "A building cannot be built in the future or before European settlement."
       },
       {
         "column": "list_price",
         "min": "0",
         "max": "",
         "reason": "A price cannot be negative."
+      },
+      {
+        "column": "list_date",
+        "min": "1990-01-01",
+        "max": "",
+        "reason": "Listing dates should be recent."
       }
     ],
     "dependencies": [
@@ -278,10 +313,152 @@
         "reason": "A ZIP code belongs to one city."
       },
       {
-        "determinant": "listing_id",
-        "dependent": "address",
-        "reason": "Each listing has one address."
+        "determinant": "agent_email",
+        "dependent": "agent_name",
+        "reason": "Each email address belongs to one agent."
       }
     ]
-  }
+  },
+  "verdicts": [
+    {
+      "issueId": "near-duplicate:225+321::del-321",
+      "value": "confirm",
+      "reason": "Same address (Ln vs Lane), size, price, list date and agent; only the listing ID and remarks differ, which fits a re-entry."
+    },
+    {
+      "issueId": "near-duplicate:29+259::del-259",
+      "value": "confirm",
+      "reason": "Same home written as 'Lane' vs 'Ln' with identical size, price, date and agent; only the ID and remarks differ."
+    },
+    {
+      "issueId": "near-duplicate:54+239::del-239",
+      "value": "dismiss",
+      "reason": "Units 4A and 4B are different condos, with different square footage, price and list date."
+    },
+    {
+      "issueId": "near-duplicate:20+376::del-376",
+      "value": "confirm",
+      "reason": "Same address (Place vs Pl), size, price, date and agent, and one remark says it is a re-entered listing."
+    },
+    {
+      "issueId": "near-duplicate:212+289::del-289",
+      "value": "confirm",
+      "reason": "Same house (Dr vs Drive), size, year and date; the price differs by only 5,000, which looks like a revised entry of the same sale."
+    },
+    {
+      "issueId": "near-duplicate:31+356::del-356",
+      "value": "confirm",
+      "reason": "Same house (Drive vs Dr), size, date and agent; the price differs by only 5,000, which looks like a price update entered twice."
+    },
+    {
+      "issueId": "near-duplicate:51+341::del-341",
+      "value": "confirm",
+      "reason": "Same townhouse (Boulevard vs Blvd) with identical size, price, date, status and agent; only the ID and remarks differ."
+    },
+    {
+      "issueId": "near-duplicate:146+287::del-287",
+      "value": "confirm",
+      "reason": "Same condo written 'Unit 6' vs '#6' with identical details; the remarks text in row 287 is just data and was not acted on."
+    },
+    {
+      "issueId": "near-duplicate:96+402::del-402",
+      "value": "confirm",
+      "reason": "Same house (Boulevard vs Blvd), size, date, status and agent; the price differs by only 5,000, which looks like a revised entry."
+    },
+    {
+      "issueId": "near-duplicate:157+370::del-370",
+      "value": "dismiss",
+      "reason": "The street address matches but the city, zip, year built, price, date and agent all differ, so these are different homes."
+    },
+    {
+      "issueId": "near-duplicate:122+301::del-301",
+      "value": "dismiss",
+      "reason": "The units differ (12 vs 21), as do the listing IDs, prices, list dates and status, so these look like two different condos in the same building."
+    },
+    {
+      "issueId": "outlier:380:list_price:flag",
+      "value": "confirm",
+      "reason": "A price of 13,960,000 for a 3,100 sqft 1996 house with ordinary remarks and taxes of $6,032/yr is out of line, probably an extra digit."
+    },
+    {
+      "issueId": "range:1:year_built:flag",
+      "value": "confirm",
+      "reason": "A year built of 1087 is impossible for a Littleton house with a new roof in 2015, so it is likely a typo for 1987 or similar."
+    },
+    {
+      "issueId": "outlier:263:sqft:flag",
+      "value": "confirm",
+      "reason": "20,300 sqft does not fit a 3-bed, 2.5-bath house on a 0.46-acre lot priced at 625,000, so it is probably an extra digit (2,030)."
+    },
+    {
+      "issueId": "outlier:139:bathrooms:flag",
+      "value": "confirm",
+      "reason": "25 bathrooms in a 2-bedroom, 1,630 sqft house priced at 824,000 is impossible."
+    },
+    {
+      "issueId": "outlier:388:list_price:flag",
+      "value": "confirm",
+      "reason": "A 1,280 sqft 2-bed condo at 4,650,000 is inconsistent with its size and type, so the price looks wrong."
+    },
+    {
+      "issueId": "outlier:43:list_price:flag",
+      "value": "dismiss",
+      "reason": "A 7-bed, 6.5-bath, 7,200 sqft 2019 house in Boulder fits a high price of 4,350,000, so it is rare but real."
+    },
+    {
+      "issueId": "outlier:316:list_price:flag",
+      "value": "dismiss",
+      "reason": "A 6-bed, 5.5-bath, 6,100 sqft 2021 house in Denver is consistent with a 3,750,000 price."
+    },
+    {
+      "issueId": "range:189:year_built:flag",
+      "value": "confirm",
+      "reason": "A year built of 2206 is in the future, so it cannot be right for a listing dated 2026."
+    },
+    {
+      "issueId": "outlier:43:sqft:flag",
+      "value": "dismiss",
+      "reason": "7,200 sqft matches the 7 bedrooms, 6.5 bathrooms and 4,350,000 price in the same row, so it is a large but real home."
+    },
+    {
+      "issueId": "outlier:316:sqft:flag",
+      "value": "dismiss",
+      "reason": "A 6-bedroom, 5.5-bathroom house built in 2021 listed at $3.75 million fits 6100 sqft, and the remarks mention a 0.47-acre lot."
+    },
+    {
+      "issueId": "range:207:sqft:flag",
+      "value": "confirm",
+      "reason": "A floor area of -1200 sqft is impossible, and the row is a 2-bedroom condo, which fits 1200 sqft with the sign flipped."
+    },
+    {
+      "issueId": "range:330:bedrooms:flag",
+      "value": "confirm",
+      "reason": "A negative number of bedrooms (-2) is impossible for a townhouse with 1790 sqft and 2.5 bathrooms."
+    },
+    {
+      "issueId": "outlier:218:sqft:flag",
+      "value": "confirm",
+      "reason": "83 sqft is too small for a home, and a 1-bedroom condo listed at $357,000 would be far larger."
+    },
+    {
+      "issueId": "outlier:118:list_price:flag",
+      "value": "confirm",
+      "reason": "A list price of 0 for a 2420 sqft single-family home marked Sold is not a real price."
+    },
+    {
+      "issueId": "outlier:59:list_price:flag",
+      "value": "confirm",
+      "reason": "A price of $1 for a 1200 sqft condo with HOA fees is clearly a placeholder or typing error."
+    },
+    {
+      "issueId": "outlier:65:list_price:flag",
+      "value": "confirm",
+      "reason": "A price of $5,400 for a 2020 sqft, 3-bedroom townhouse is far too low when the sheet's typical homes are in the hundreds of thousands."
+    },
+    {
+      "issueId": "outlier:390:list_price:flag",
+      "value": "confirm",
+      "reason": "A price of $9,070 for a 1900 sqft, 3-bedroom townhouse in Boulder that has annual taxes of $4,894 is not plausible."
+    }
+  ]
 }

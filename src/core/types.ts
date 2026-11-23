@@ -161,6 +161,33 @@ export interface VerifiedContract {
   rejected: Array<{ rule: string; summary: string; reason: string }>;
 }
 
+/**
+ * SPEC §6.4: one ambiguous issue, as it is sent to the model for an opinion. Only
+ * near-duplicate candidates and flagged numbers or dates become cases.
+ */
+export interface Case {
+  /** The id of the issue the case is about. */
+  issueId: string;
+  detector: 'near-duplicate' | 'outlier' | 'range';
+  /** The rows of the issue, in full: two for a duplicate candidate, one for a flagged value. */
+  rows: Array<{ rowId: number; cells: Record<string, string> }>;
+  /** For a flagged value: its column and the value as written. */
+  column?: string;
+  current?: string;
+  /** For a flagged value in a number column: the spread of that column. */
+  numeric?: NumericSummary;
+  /** Why code flagged it, in words. */
+  note: string;
+}
+
+/** SPEC §6.4: the model's opinion on one case. It never creates a fix and never changes one. */
+export interface Verdict {
+  issueId: string;
+  value: 'confirm' | 'dismiss' | 'unsure';
+  /** One sentence, shown to the user. */
+  reason: string;
+}
+
 export interface Analysis {
   issues: Issue[];
   profile: Profile;
