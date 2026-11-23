@@ -193,6 +193,8 @@ order is revised at feature freeze using the evaluation results.
 6. Confidence calibrated from the decisions users actually make.
 7. Undo history and sessions that survive a reload.
 8. Repair of rows with the wrong number of fields.
+9. Row similarity for files whose compared columns are few and all numeric, where unrelated
+   rows pair up as near duplicates (finding F8).
 
 ## 9. Stack versions
 
@@ -246,15 +248,23 @@ The `ChangeLog` needs `generatedAt`, `file.sha256` and `ai.mode/model`, and the 
 use a clock. Approved at gate 1: a fourth parameter `meta: ChangeLogMeta` supplied by the
 caller. To do between sessions: update the signature in §4.3.
 
+Resolution: accepted. SPEC 1.1 §4.3 gives `applyDecisions` the `meta: ChangeLogMeta` parameter as
+implemented.
+
 **F2. `Profile`, `IssueGroup` and `VerifiedContract` are named but never defined (SPEC §4.3,
 §5.2, §6.3).** Their shapes are now in `src/core/types.ts`, as approved at gate 1.
 `VerifiedContract` is provisional: session 2 owns it and may extend it.
+
+Resolution: accepted. SPEC 1.1 §4.3 defines the shapes as implemented. `VerifiedContract` stays
+provisional and owned by session 2.
 
 **F3. `profile` cannot hide the comparison key (SPEC §4.2).** `analyze` (R2, R4, R5), contract
 verification (§6.3) and C3 need the key, the missing test and the number reading.
 `src/core/profile` exports `comparisonKey`, `isMissing`, `missingReason`, `readNumber`,
 `plainNumberText`, `isDateText` and `quantile` next to `profileDataset`. The constants still
 live only in that module.
+
+Resolution: accepted. SPEC 1.1 §4.2 lists the value rules in the interface of `src/core/profile`.
 
 **F4. Definitions left open in §5.2 and §5.3.** Readings applied:
 - The kind of a column is decided over the values that are neither empty nor a placeholder of
@@ -269,10 +279,18 @@ live only in that module.
   contract says so", the role `identifier`). They change the compared columns of R2, so they
   conflict with invariant 6 as written. To decide before session 2.
 
+Resolution: the profile and the rule detectors never depend on the contract; the contract only
+drives the C detectors. The 0.90 threshold of R2 was calibrated for one definition of row
+similarity (D7), and invariant 6 stays as written; the proposal to rewrite it is rejected.
+SPEC 1.1 §5.2: identifier-like is decided by the header alone, soft placeholders apply only in
+number and date columns, and the missing tokens of a contract only produce C2 issues.
+
 **F5. `groupIssues` (SPEC §4.3).** Grouping by "same target value" gives one group per cell
 for fixes that reformat each cell's own value. Approved at gate 1: the target is part of the
 group only when the fix writes a shared value; `whitespace`, `number-format` and
 `date-format` group by type, detector and column.
+
+Resolution: accepted. SPEC 1.1 §4.3 describes `groupIssues` as implemented.
 
 **F6. R2 differs from the reference of §8.4 by one trap pair.** Measured with `npm run eval`:
 14 of 14 planted pairs (6 exact at 1.000, 8 near from 0.9315 to 0.9683), 3 of 4 trap pairs.
@@ -284,6 +302,10 @@ gives 0.90021, 0.9317, 0.9684 and 0.8596, which round to the four reference numb
 says a placeholder cell is missing, and the code follows §5.2. Nothing was tuned. The
 reference script is not in the repository, so this is the best explanation, not a proof.
 
+Resolution: the SPEC text rules. The author of the reference script confirmed that it counted
+placeholder cells as values when weighting columns. SPEC 1.1 §8.4 takes the numbers measured
+by the implementation.
+
 **F7. R8 flags valid postal codes (SPEC §5.2, §5.4). To decide before session 2.** `zip` is
 a number column by §5.2 and its header is not identifier-like, so R8 runs on it: 36 of the 40
 false positives of `outlier` are valid values of `zip` (the other 4 are the two legit-outlier
@@ -293,10 +315,22 @@ at risk unless the contract or the adjudication removes them. Classification pro
 whose values are codes (same digit count, whole numbers); or R8 runs only on columns the
 contract marks as `measure`; or leave it to S1. Not changed in code.
 
+Resolution: classified as a rule-definition finding (SPEC §8.5). R8 gets one more condition
+(SPEC 1.1 §5.4): on a given scale, raw or log10, if more than 5% of the column's numbers fall
+outside the fences, that scale is skipped for that column, because such a column does not
+have the single-cluster shape the fences assume. The 5% was fixed before the re-run and is
+not adjusted afterwards. The proposal to run R8 only on `measure` columns is rejected: it
+leaves rules-only mode unchanged and makes a rule depend on the contract. Measured after the
+change (`evals/runs/20261123T193333Z-rules-listings.json`): 112 issues, 105 true positives,
+7 false positives, precision 0.9375, recall 0.808; `outlier` has 12 true positives and 4
+false positives, none of them on `zip`. These are the numbers projected before the run.
+
 **F8. R2 on files with few, numeric columns (SPEC §5.3).** Two numbers 5% apart have a
 similarity of 0.95, so in a table whose compared columns are all numeric, unrelated rows
 pair up as near duplicates. Seen in a unit test with one numeric column (12 pairs among 24
 evenly spaced values), not in the fixtures. Not changed in code.
+
+Resolution: known limitation. No code change. Added to the cut list (§8, item 9).
 
 **F9. R7 takes cells from R8 (SPEC §5.6).** R7 runs before R8, so a number with a different
 digit count from the rest of its column is reported as `shape`, type `inconsistent`, and
@@ -305,9 +339,13 @@ located by an `inconsistent` issue for this reason (the confusion table of the e
 code follows §5.6. To decide: whether the order should be R8 before R7, or R7 should skip
 number columns.
 
+Resolution: known limitation. No code change.
+
 **F10. R6 details the SPEC does not state.** ISO layouts need two-digit months and days;
 slash dates accept one or two digits. Fixes are written zero-padded in numeric layouts and
 unpadded in the two month-name layouts. A date that does not exist is flagged with high
 confidence. With R6 and R7 the rules-only run gives recall 0.808 and precision 0.709
 (0.662 and 0.667 before them); `date-format` locates 12 of 12 with 12 correct fixes and
 `shape` locates 10 with no false positive.
+
+Resolution: accepted. SPEC 1.1 §5.4 states the details of R6 as implemented.

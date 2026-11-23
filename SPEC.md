@@ -1,6 +1,21 @@
 # SPEC: AI Data Cleanup Assistant
 
-Version 1.0 · 2026-11-23 · Status: contract for the one-day build
+Version 1.1 · 2026-11-23 · Status: contract for the one-day build
+
+Changes in 1.1. Each one closes a finding of session 1 (`DECISIONS.md` §10):
+
+- §4.3: `applyDecisions` takes a fourth parameter, `meta`, with what only the caller knows (F1).
+- §4.3: `Profile`, `IssueGroup`, `VerifiedContract`, `Analysis` and `ChangeLogMeta` are defined (F2).
+- §4.2: `src/core/profile` also exports the value rules that the other modules need (F3).
+- §5.2: the profile and the rule detectors never depend on the contract; identifier-like is
+  decided by the header alone and soft placeholders apply only in number and date columns (F4).
+- §4.3: `groupIssues` leaves the target value out of the group when the fixes reformat each
+  cell's own value (F5).
+- §8.4: the R2 reference is replaced by the numbers the implementation measures (F6).
+- §5.4, R8: a scale is skipped for a column when more than 5% of its numbers fall outside the
+  fences (F7).
+- §5.4, R6: the digits a date may have, the padding of a fix, and the handling of dates that
+  do not exist (F10).
 
 This file is the contract. It is frozen inside a working session. A problem found in it
 mid-session is a finding: it is written down in `DECISIONS.md` under "Findings" and fixed
@@ -81,7 +96,7 @@ Issue types are the four categories of the brief: `duplicate`, `inconsistent`, `
 | Module | Interface (what callers must know) | Hides | Depends on |
 |---|---|---|---|
 | `src/core/csv` | `parseCsv`, `serializeCsv` | CSV dialect, limits, row numbering | papaparse |
-| `src/core/profile` | `profileDataset` | type inference, shapes, quantile method, comparison key, column heuristics | none |
+| `src/core/profile` | `profileDataset`, and the value rules `comparisonKey`, `isMissing`, `missingReason`, `readNumber`, `plainNumberText`, `readDate`, `isDateText`, `shapeOf`, `quantile` | how each of them is computed: the normalisation behind the key, the placeholder lists, type inference, the quantile method, column heuristics | none |
 | `src/core/contract` | `ContractSchema`, `buildContractRequest`, `verifyContract` | what is sent to the model, every support threshold, how the canonical spelling is chosen | profile |
 | `src/core/analyze` | `analyze`, `groupIssues` | every detector, their order, precedence, similarity, thresholds, issue ids | profile, contract |
 | `src/core/adjudicate` (S1) | `selectCases`, `applyVerdicts` | which issues are sent, the case format, what a verdict changes | analyze |
@@ -130,6 +145,64 @@ export interface Issue {
 
 export type Decision = 'accepted' | 'rejected';
 export type Decisions = Record<string, Decision>;   // by issue id; absent = pending
+
+export type ColumnKind = 'number' | 'date' | 'text';
+
+export interface NumericSummary {
+  count: number; min: number; p5: number; q1: number; median: number;
+  q3: number; p95: number; max: number;
+}
+
+export interface ColumnProfile {
+  name: string;
+  kind: ColumnKind;
+  rows: number;
+  missing: number;
+  distinct: number;              // distinct comparison keys among the non-missing cells
+  distinctRatio: number;         // distinct / non-missing cells; 0 when the column has no value
+  categorical: boolean;
+  freeText: boolean;
+  identifierLike: boolean;
+  topValues: Array<{ value: string; count: number }>;   // up to 50, as written
+  topShapes: Array<{ shape: string; count: number }>;   // up to 5
+  numeric?: NumericSummary;      // number columns that hold at least one number
+}
+
+export interface Profile { rowCount: number; columns: ColumnProfile[] }   // in column order
+
+export interface IssueGroup {
+  id: string;
+  type: IssueType;
+  detector: string;
+  source: 'rule' | 'ai';
+  column?: string;
+  target?: string;               // the value every fix of the group writes; absent when they differ
+  confidence: Confidence;        // the lowest in the group
+  issues: Issue[];               // in row order
+}
+
+// Provisional: `verifyContract` owns this shape and may extend it. `Contract` is in §6.2.
+export interface VerifiedContract {
+  columns: Contract['columns'];  // `format` is already 'none' where the data did not support it
+  missingTokens: Array<{ column: string; token: string; support: string }>;
+  canonicalGroups: Array<{ column: string; canonical: string; variants: string[];
+                           reason: string; support: string }>;
+  suspiciousValues: Array<{ column: string; value: string; reason: string; support: string }>;
+  ranges: Array<{ column: string; min: string; max: string; reason: string; support: string }>;
+  dependencies: Array<{ determinant: string; dependent: string; reason: string; support: string }>;
+  rejected: Array<{ rule: string; summary: string; reason: string }>;
+}
+
+export interface Analysis { issues: Issue[]; profile: Profile; contract?: VerifiedContract }
+
+export type AiMode = 'live' | 'recorded' | 'off';
+
+// What the caller knows and the core cannot compute: the clock, the file hash, the AI mode.
+export interface ChangeLogMeta {
+  generatedAt: string;           // ISO 8601
+  sha256: string;                // SHA-256 of the uploaded file, hex
+  ai: { mode: AiMode; model: string | null };
+}
 ```
 
 ```ts
@@ -172,18 +245,23 @@ export function verifyContract(proposed: Contract, dataset: Dataset): VerifiedCo
  * on a rules-only result stay valid after the contract arrives.
  */
 export function analyze(dataset: Dataset, contract?: VerifiedContract): Analysis;
-// Analysis = { issues: Issue[]; profile: Profile; contract?: VerifiedContract }
 
-/** Groups issues for review and bulk decisions: same type, detector, column and target value. */
+/**
+ * Groups issues for review and bulk decisions: same type, detector and column, and the same
+ * target value when the fix writes a value the group shares. Fixes that reformat each cell's
+ * own value (`whitespace`, `number-format`, `date-format`) are grouped without the target.
+ */
 export function groupIssues(issues: Issue[]): IssueGroup[];
 
 /**
  * Produces the cleaned dataset and the change log from the user's decisions. Only accepted
  * fixes are applied. The input dataset is not modified. The change log lists every issue with
- * its decision, including the ones that changed nothing.
+ * its decision, including the ones that changed nothing. `meta` carries what only the caller
+ * knows: the time, the hash of the uploaded file and the AI mode.
  */
-export function applyDecisions(dataset: Dataset, analysis: Analysis, decisions: Decisions):
-  { cleaned: Dataset; changeLog: ChangeLog };
+export function applyDecisions(
+  dataset: Dataset, analysis: Analysis, decisions: Decisions, meta: ChangeLogMeta,
+): { cleaned: Dataset; changeLog: ChangeLog };
 ```
 
 HTTP routes (JSON in, JSON out):
@@ -242,23 +320,26 @@ scaffolded.
   lower case. Two values are "the same value written differently" when their keys are equal.
 - **Strict placeholders** (always mean "no value", compared by key): `n/a`, `#n/a`, `null`,
   `nil`, `nan`, `undefined`, `-`, `--`, `?`, `tbd`.
-- **Soft placeholders** (mean "no value" only in a number or date column, or when the contract
-  says so for that column): `na`, `none`, `unknown`, `missing`, `not available`, `pending`.
-  They are not treated as placeholders in text columns by rules alone, because there they can
-  be real values (`NA` is a country code; `none` is a valid answer).
+- **Soft placeholders** (mean "no value" only in a number or date column): `na`, `none`,
+  `unknown`, `missing`, `not available`, `pending`. They are not treated as placeholders in
+  text columns, because there they can be real values (`NA` is a country code; `none` is a
+  valid answer).
 - A cell is **missing** when it is empty or holds a placeholder that applies to its column.
 - **Kind** of a column: `number` when at least 90% of its non-missing values are numbers after
   the normalisation of R5; `date` when at least 90% parse as one of the formats of R6;
   otherwise `text`.
 - **Categorical**: kind `text`, and 50 or fewer distinct keys or a distinct ratio of 0.1 or less.
 - **Free text**: average length above 40 characters and distinct ratio above 0.5.
-- **Identifier-like**: the header matches `/(^|_)(id|uuid|key)$/i`, or the contract gives the
-  column the role `identifier`.
+- **Identifier-like**: the header matches `/(^|_)(id|uuid|key)$/i`. The header alone decides.
 - **Shape** of a value: every letter becomes `A`, every digit becomes `9`, other characters stay.
 - **Quartiles and percentiles**: sorted values, position `p * (n - 1)`, linear interpolation.
 - Per column the profile holds: counts (rows, missing, distinct), distinct ratio, kind, flags,
   up to 50 most common values with counts, up to 5 most common shapes with counts, and for
   number columns min, p5, q1, median, q3, p95, max.
+
+The profile and the rule detectors never depend on the contract. A contract can name further
+missing tokens for a column; they produce C2 issues and do not change the profile, the kind of
+a column or the row similarity.
 
 ### 5.3 Row similarity (used by R2)
 
@@ -296,13 +377,32 @@ slash date in the column is month-first (or every one is day-first), that order 
 the confidence is medium; with no such evidence the issue is flag-only. A value that parses
 to a date that does not exist is `suspicious`, flag-only.
 
+R6 in detail:
+
+- A value is read as a date from its text alone. The two year-first formats need a two-digit
+  month and day; slash dates accept one or two digits; month names are the three-letter
+  English abbreviations, in any case. Whether the date exists is checked afterwards.
+- The two slash formats are one layout in the text, so they are counted together when the
+  dominant format is looked for, and the order of that layout is the one every unambiguous
+  slash date of the column agrees on. When slash is dominant and has no such order, values in
+  other formats are flagged without a fix.
+- A fix is written zero-padded in the numeric formats (`2024-03-05`, `03/05/2024`) and
+  unpadded in the two formats with a month name (`Mar 5, 2024`, `5 Mar 2024`).
+- A date that does not exist is flagged with high confidence in any format, the dominant one
+  included, and also in a column with no dominant format. An ambiguous slash date with no
+  evidence for its order is flagged with medium confidence.
+
 R8 needs at least 20 numbers in the column. A value is flagged when any of these holds:
 
 - it is outside the Tukey fences with k = 3 on the raw values (`q1 - 3*IQR`, `q3 + 3*IQR`);
 - it is positive and outside the same fences computed on `log10` of the positive values;
 - it is zero or negative in a column where 95% or more of the numbers are positive.
 
-A scale whose IQR is 0 is skipped. Numbers are read after the normalisation of R5.
+A scale whose IQR is 0 is skipped. A scale (raw or log10) is also skipped for a column when
+more than 5% of the column's numbers fall outside its fences: such a column does not have the
+single-cluster shape the fences assume, so the values outside are a second group of valid
+values and not anomalies. The third condition uses no fences and is not affected. Numbers are
+read after the normalisation of R5.
 
 ### 5.5 Detectors driven by the verified contract
 
@@ -545,12 +645,14 @@ is committed. A run records the model id and the SHA-256 of the dataset.
 | T3 | same | Fabricated fixes: 0. Fix accuracy 0.95 or more. Fixes on clean data: 2 or fewer |
 | T4 | `eval:heldout` | No threshold. Reported as measured, next to the development numbers |
 
-Reference for R2, measured by the fixture author with a throwaway script that implements §5.3,
-before any detector existed: on the development dataset, at 0.90, all 14 planted duplicate
-pairs are found (6 exact at 1.000, 8 near between 0.932 and 0.968) together with the 4 trap
-pairs (0.900 to 0.963); the next highest pair scores 0.860. The rule alone cannot tell the
-planted pairs from the traps; that is the job of S1. If the implementation gives different
-numbers, the difference is reported and explained, not tuned away.
+Reference for R2, measured by the implementation with `npm run eval`: on the development
+dataset, at 0.90, all 14 planted duplicate pairs are found (6 exact at 1.000, 8 near between
+0.9315 and 0.9683) together with 3 of the 4 trap pairs (0.9022 to 0.9634). The fourth trap
+pair scores 0.8999, just under the threshold, and the next highest pair scores 0.8593. The
+rule alone cannot tell the planted pairs from the traps; that is the job of S1. The reference
+of version 1.0 (4 trap pairs from 0.900, next pair at 0.860) came from a throwaway script that
+counted placeholder cells as values when it weighted the columns; §5.2 counts them as missing,
+and the text of this SPEC rules.
 
 ### 8.5 When a threshold is missed
 

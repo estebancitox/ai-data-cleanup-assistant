@@ -250,6 +250,20 @@ describe('R8 outlier', () => {
     expect(flagged([...steady(24), '0', '-3', '-4'])).toEqual([]);
   });
 
+  it('skips a scale on which more than 5% of the numbers are outside the fences', () => {
+    // 400 and 450 are outside the raw fences and inside the log fences; 0.5 is the reverse.
+    // Two of 27 numbers is more than 5%, so the raw scale is skipped and only 0.5 is flagged.
+    expect(flagged([...steady(24), '400', '450', '0.5'])).toEqual(['0.5']);
+    // Two groups of values, far apart on both scales: neither group is an anomaly.
+    expect(flagged([...steady(24), '5000', '5005', '5010'])).toEqual([]);
+  });
+
+  it('still flags a single extreme value', () => {
+    expect(flagged([...steady(24), '400'])).toEqual(['400']);
+    // One of 20 numbers is exactly 5%, which is not more than 5%.
+    expect(flagged([...steady(19), '400'])).toEqual(['400']);
+  });
+
   it('skips a scale with no spread and identifier-like columns', () => {
     expect(flagged([...Array.from({ length: 24 }, () => '10'), '500'])).toEqual([]);
     expect(flagged([...steady(24), '99999'], 'order_id')).toEqual([]);
@@ -258,13 +272,14 @@ describe('R8 outlier', () => {
 
 describe('precedence', () => {
   it('gives a cell to the first detector in the order R3, R5, R6, R4, R7, R8', () => {
-    const prices = single('price', [...steady(24), ' $99,999 ', ' n/a ', ' 150', '99999', '999']);
+    // 60 steady prices, so that the three extreme values stay under 5% of the column (R8).
+    const prices = single('price', [...steady(60), ' $99,999 ', ' n/a ', ' 150', '99999', '999']);
     expect(cellIssuesOf(prices).map((issue) => [issue.rowIds[0], issue.detector, proposed(issue)])).toEqual([
-      [25, 'number-format', '99999'],
-      [26, 'placeholder', ''],
-      [27, 'whitespace', '150'],
-      [28, 'shape', null],
-      [29, 'outlier', null],
+      [61, 'number-format', '99999'],
+      [62, 'placeholder', ''],
+      [63, 'whitespace', '150'],
+      [64, 'shape', null],
+      [65, 'outlier', null],
     ]);
 
     const iso = Array.from({ length: 18 }, (_, i) => `2024-01-${String(i + 10).padStart(2, '0')}`);

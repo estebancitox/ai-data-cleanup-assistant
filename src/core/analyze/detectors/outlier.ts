@@ -7,20 +7,33 @@ import type { Candidate } from '../precedence';
 const MIN_NUMBERS = 20;
 const FENCE_K = 3;
 const MOSTLY_POSITIVE_SHARE = 0.95;
+const MAX_OUTSIDE_SHARE = 0.05;
 
-/** Tukey fences, or null when the scale has no spread (IQR of 0). */
-function fences(values: number[]): { low: number; high: number } | null {
+interface Fences {
+  low: number;
+  high: number;
+}
+
+const outside = (value: number, range: Fences | null) =>
+  range !== null && (value < range.low || value > range.high);
+
+/**
+ * Tukey fences for one scale of a column, or null when the scale is skipped. A scale is
+ * skipped when it has no spread (IQR of 0), or when more than 5% of the column's numbers fall
+ * outside the fences: such a column does not have the single-cluster shape the fences assume,
+ * so the values outside are a second group and not anomalies.
+ */
+function fences(values: number[], columnNumbers: number): Fences | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
   const q1 = quantile(sorted, 0.25);
   const q3 = quantile(sorted, 0.75);
   const iqr = q3 - q1;
   if (iqr === 0) return null;
-  return { low: q1 - FENCE_K * iqr, high: q3 + FENCE_K * iqr };
+  const range = { low: q1 - FENCE_K * iqr, high: q3 + FENCE_K * iqr };
+  const outsideCount = values.filter((value) => outside(value, range)).length;
+  return outsideCount / columnNumbers > MAX_OUTSIDE_SHARE ? null : range;
 }
-
-const outside = (value: number, range: { low: number; high: number } | null) =>
-  range !== null && (value < range.low || value > range.high);
 
 export function detectOutliers(dataset: Dataset, profile: Profile): Candidate[] {
   const found: Candidate[] = [];
@@ -36,8 +49,8 @@ export function detectOutliers(dataset: Dataset, profile: Profile): Candidate[] 
     if (cells.length < MIN_NUMBERS) continue;
 
     const positives = cells.filter((cell) => cell.value > 0).map((cell) => cell.value);
-    const rawFences = fences(cells.map((cell) => cell.value));
-    const logFences = fences(positives.map((value) => Math.log10(value)));
+    const rawFences = fences(cells.map((cell) => cell.value), cells.length);
+    const logFences = fences(positives.map((value) => Math.log10(value)), cells.length);
     const mostlyPositive = positives.length / cells.length >= MOSTLY_POSITIVE_SHARE;
     const typical = column.numeric
       ? `Half of the numbers in this column are between ${column.numeric.q1} and ${column.numeric.q3}.`

@@ -50,7 +50,11 @@ export function analyze(dataset: Dataset, contract?: VerifiedContract): Analysis
 const REFORMATTING_DETECTORS = new Set(['whitespace', 'number-format', 'date-format']);
 const CONFIDENCE_RANK: Record<Confidence, number> = { low: 0, medium: 1, high: 2 };
 
-/** Groups issues for review and bulk decisions: same type, detector, column and target value. */
+/**
+ * Groups issues for review and bulk decisions: same type, detector and column, and the same
+ * target value when the fix writes a value the group shares. Fixes that reformat each cell's
+ * own value are grouped without the target.
+ */
 export function groupIssues(issues: Issue[]): IssueGroup[] {
   const groups = new Map<string, IssueGroup>();
   for (const issue of issues) {
