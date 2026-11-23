@@ -13,18 +13,23 @@ interface IssueRowProps {
   status: Status;
   columns: string[];
   rowsById: Map<number, Row>;
+  /** The rows that accepted duplicate fixes remove, each with the row kept in its place. */
+  removedRows: Map<number, number>;
   /** `null` returns the issue to pending. */
   onDecide: (issueId: string, decision: Decision | null) => void;
 }
 
 const LABEL = "text-[12px] text-muted";
 
-export function IssueRow({ issue, status, columns, rowsById, onDecide }: IssueRowProps) {
+export function IssueRow({ issue, status, columns, rowsById, removedRows, onDecide }: IssueRowProps) {
   const words = actionWords(issue);
   const label = issueLabel(issue);
   const { fix } = issue;
   const kept = fix?.kind === "delete-row" ? rowsById.get(fix.keepRowId) : undefined;
   const removed = fix?.kind === "delete-row" ? rowsById.get(fix.rowId) : undefined;
+  // SPEC §5.6: an issue about a cell of a row that an accepted duplicate fix removes is
+  // dropped when the decisions are applied. The row says so while that fix stays accepted.
+  const keptInstead = fix?.kind === "delete-row" ? undefined : removedRows.get(issue.rowIds[0]);
 
   // Pressing the decision that is in force takes it back.
   const toggle = (decision: Decision) => onDecide(issue.id, status === decision ? null : decision);
@@ -47,6 +52,12 @@ export function IssueRow({ issue, status, columns, rowsById, onDecide }: IssueRo
           )}
           <p className="mt-2 max-w-[75ch]">{issue.reason}</p>
           {issue.evidence !== undefined && <p className="max-w-[75ch] text-[13px] text-muted">{issue.evidence}</p>}
+          {keptInstead !== undefined && (
+            <p className="mt-2 max-w-[75ch] border-l-2 border-accent pl-3 text-[13px]">
+              Row <span className="font-mono">{issue.rowIds[0]}</span> is removed by a duplicate fix you accepted (row{" "}
+              <span className="font-mono">{keptInstead}</span> is kept), so this issue does not reach the cleaned file.
+            </p>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">

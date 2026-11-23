@@ -66,6 +66,8 @@ function expectedFor(text: string, fileName: string) {
 const sample = expectedFor(SAMPLE_BYTES.toString('utf8'), SAMPLE_NAME);
 
 const hasFix = (issue: Issue) => issue.fix !== undefined;
+/** What "accept all high-confidence fixes" may reach, written out here and not taken from the page. */
+const sureFixes = (issues: Issue[]) => issues.filter((issue) => hasFix(issue) && issue.confidence === 'high');
 const fixGroups = (groups: IssueGroup[]) => groups.filter((group) => group.issues.every(hasFix));
 const flagGroups = (groups: IssueGroup[]) => groups.filter((group) => !group.issues.some(hasFix));
 
@@ -193,6 +195,7 @@ it(
     }
     expect(button('Download cleaned CSV')).toBeTruthy();
     expect(button('Download change log')).toBeTruthy();
+    expect(button(`Accept all high-confidence fixes (${sureFixes(sample.analysis.issues).length})`)).toBeTruthy();
 
     // Every group is on screen, collapsed, with its bulk controls.
     expect(screen.getAllByRole('group')).toHaveLength(sample.groups.length);
@@ -330,6 +333,166 @@ it('a flag is confirmed or dismissed, and never accepted in bulk with fixes', as
   // Confirming a flag changes no cell.
   await user.click(button('Download cleaned CSV'));
   expect(saved[0].text).toBe(serializeCsv(sample.dataset));
+});
+
+it('accept all high-confidence fixes accepts those fixes, keeps decisions made by hand, and touches no flag', async () => {
+  const user = await openSample();
+  const held = seam.snapshots[0].analysis;
+  const before = structuredClone(held);
+  const sure = sureFixes(sample.analysis.issues);
+  const others = sample.analysis.issues.filter((issue) => !sure.includes(issue));
+  // The sample has what the rule must leave alone: flags of high confidence, and fixes of lower confidence.
+  expect(others.some((issue) => !hasFix(issue) && issue.confidence === 'high')).toBe(true);
+  expect(others.some((issue) => hasFix(issue) && issue.confidence !== 'high')).toBe(true);
+
+  // One of them is rejected by hand first; the bulk action must not turn it around.
+  const group = sample.groups.find((each) => each.issues.includes(sure[0]));
+  if (!group) throw new Error('no group for the first high-confidence fix');
+  const region = await expand(user, group);
+  await user.click(within(region).getByRole('button', { name: rejectName(sure[0]) }));
+
+  await user.click(button(`Accept all high-confidence fixes (${sure.length - 1})`));
+  expect(screen.getByRole('status').textContent).toBe(
+    `${sure.length - 1} accepted, 1 rejected, ${sample.analysis.issues.length - sure.length} pending`,
+  );
+  expect(button('Accept all high-confidence fixes (0)').hasAttribute('disabled')).toBe(true);
+
+  // The export is what applyDecisions gives for exactly those decisions.
+  await user.click(button('Download cleaned CSV'));
+  await user.click(button('Download change log'));
+  const downloadedLog = JSON.parse(saved[1].text) as ChangeLog;
+  const decisions: Decisions = {
+    ...Object.fromEntries(sure.slice(1).map((issue) => [issue.id, 'accepted' as const])),
+    [sure[0].id]: 'rejected',
+  };
+  const expected = applyDecisions(sample.dataset, sample.analysis, decisions, {
+    generatedAt: downloadedLog.generatedAt,
+    sha256: createHash('sha256').update(SAMPLE_BYTES).digest('hex'),
+    ai: { mode: 'off', model: null },
+  });
+  expect(saved[0].text).toBe(serializeCsv(expected.cleaned));
+  expect(downloadedLog).toEqual(expected.changeLog);
+  for (const change of downloadedLog.changes.filter((each) => each.decision === 'accepted')) {
+    expect(change.confidence).toBe('high');
+    expect(sure.some((issue) => issue.id === change.issueId)).toBe(true);
+  }
+  expect(held).toEqual(before);
+});
+
+it('accept all high-confidence fixes reaches only the issues the filters show', async () => {
+  const user = await openSample();
+  const sure = sureFixes(sample.analysis.issues);
+  const duplicates = sure.filter((issue) => issue.type === 'duplicate');
+  expect(duplicates.length).toBeGreaterThan(0);
+  expect(duplicates.length).toBeLessThan(sure.length);
+
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Type' }), 'Duplicates');
+  await user.click(button(`Accept all high-confidence fixes (${duplicates.length})`));
+  await user.selectOptions(screen.getByRole('combobox', { name: 'Type' }), 'All types');
+
+  expect(screen.getByRole('status').textContent).toContain(`${duplicates.length} accepted, 0 rejected`);
+  expect(button(`Accept all high-confidence fixes (${sure.length - duplicates.length})`)).toBeTruthy();
+});
+
+it('undo restores the decisions as they were before the last bulk action, one step only', async () => {
+  const user = await openSample();
+  const sure = sureFixes(sample.analysis.issues);
+  const total = sample.analysis.issues.length;
+  const undo = () => screen.queryByRole('button', { name: 'Undo' });
+  const status = () => screen.getByRole('status').textContent;
+  // What the change log says each issue's decision is: the page's decisions, as exported.
+  const exported = () => {
+    saved.length = 0;
+    fireEvent.click(button('Download change log'));
+    const log = JSON.parse(saved[0].text) as ChangeLog;
+    return Object.fromEntries(log.changes.filter((each) => each.decision !== 'pending').map((each) => [each.issueId, each.decision]));
+  };
+
+  // A decision by hand offers no undo.
+  const group = sample.groups.find((each) => each.issues.length >= 2 && each.issues.every((issue) => sure.includes(issue)));
+  if (!group) throw new Error('the sample needs a group of two or more high-confidence fixes');
+  const [one, two] = group.issues;
+  const region = await expand(user, group);
+  await user.click(within(region).getByRole('button', { name: rejectName(one) }));
+  expect(undo()).toBeNull();
+  const byHand = { [one.id]: 'rejected' };
+  expect(exported()).toEqual(byHand);
+
+  // After "accept all high-confidence fixes", undo puts back exactly what was there.
+  await user.click(button(`Accept all high-confidence fixes (${sure.length - 1})`));
+  expect(status()).toBe(`${sure.length - 1} accepted, 1 rejected, ${total - sure.length} pending`);
+  await user.click(button('Undo'));
+  expect(status()).toBe(`0 accepted, 1 rejected, ${total - 1} pending`);
+  expect(exported()).toEqual(byHand);
+  expect(undo()).toBeNull();
+
+  // After a group's bulk button, any other decision takes the undo away.
+  const [flagged] = flagGroups(sample.groups);
+  await user.click(button(`Dismiss all (${flagged.issues.length}): ${titleOf(flagged)}`));
+  expect(undo()).not.toBeNull();
+  await user.click(within(region).getByRole('button', { name: acceptName(two) }));
+  expect(undo()).toBeNull();
+  const afterGroup = {
+    ...byHand,
+    ...Object.fromEntries(flagged.issues.map((issue) => [issue.id, 'rejected'])),
+    [two.id]: 'accepted',
+  };
+  expect(exported()).toEqual(afterGroup);
+
+  // Two bulk actions in a row: undo goes back one step, to before the second, and no further.
+  const [first, second] = fixGroups(sample.groups).filter((each) => each !== group);
+  await user.click(button(`Accept all (${first.issues.length}): ${titleOf(first)}`));
+  await user.click(button(`Reject all (${second.issues.length}): ${titleOf(second)}`));
+  await user.click(button('Undo'));
+  expect(undo()).toBeNull();
+  expect(exported()).toEqual({
+    ...afterGroup,
+    ...Object.fromEntries(first.issues.map((issue) => [issue.id, 'accepted'])),
+  });
+});
+
+it('an issue on a row that an accepted duplicate fix removes says so', async () => {
+  const text = serializeCsv(inventory());
+  const expected = expectedFor(text, 'inventory.csv');
+  // A cell issue on the very row that a duplicate fix removes.
+  const duplicate = expected.analysis.issues.find(
+    (issue) =>
+      issue.fix?.kind === 'delete-row' &&
+      expected.analysis.issues.some((other) => other.fix?.kind === 'set-cell' && other.fix.rowId === issue.fix?.rowId),
+  );
+  if (duplicate?.fix?.kind !== 'delete-row') throw new Error('the test data needs a fix on a removed row');
+  const { rowId, keepRowId } = duplicate.fix;
+  const cell = expected.analysis.issues.find((issue) => issue.fix?.kind === 'set-cell' && issue.fix.rowId === rowId);
+  if (!cell) throw new Error('the test data needs a fix on a removed row');
+  const groupWith = (issue: Issue) => {
+    const group = expected.groups.find((each) => each.issues.includes(issue));
+    if (!group) throw new Error('no group for the issue');
+    return group;
+  };
+  const note = `Row ${rowId} is removed by a duplicate fix you accepted (row ${keepRowId} is kept), so this issue does not reach the cleaned file.`;
+
+  const user = await openFile(csvFile(text, 'inventory.csv'));
+  await screen.findByRole('heading', { name: 'inventory.csv' });
+  const cellRegion = await expand(user, groupWith(cell));
+  const duplicateRegion = await expand(user, groupWith(duplicate));
+  const noteShown = () => cellRegion.textContent?.includes(note) ?? false;
+  expect(noteShown()).toBe(false);
+
+  // The note follows the decision on the duplicate, and goes away with it.
+  const acceptDuplicate = within(duplicateRegion).getByRole('button', { name: acceptName(duplicate) });
+  await user.click(acceptDuplicate);
+  expect(noteShown()).toBe(true);
+  await user.click(acceptDuplicate);
+  expect(noteShown()).toBe(false);
+
+  // With both accepted, the row is gone and the fix on its cell changed nothing.
+  await user.click(acceptDuplicate);
+  await user.click(within(cellRegion).getByRole('button', { name: acceptName(cell) }));
+  await user.click(button('Download change log'));
+  const downloadedLog = JSON.parse(saved[0].text) as ChangeLog;
+  expect(downloadedLog.summary).toMatchObject({ accepted: 2, cellsChanged: 0, rowsRemoved: 1 });
+  // The note only appears on issues of the removed row.
+  expect(document.body.textContent?.split(note)).toHaveLength(2);
 });
 
 it('groups are collapsed by default and show 50 issues at a time', async () => {

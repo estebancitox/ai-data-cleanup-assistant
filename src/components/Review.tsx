@@ -14,6 +14,8 @@ import {
   decide,
   decideMany,
   matchesFilters,
+  pendingHighConfidenceFixes,
+  removedRows,
   sameDecisions,
 } from "../lib/decisions";
 import { plural } from "../lib/describe";
@@ -46,6 +48,13 @@ interface Downloads {
   last?: { name: string; summary: ReturnType<typeof buildExport>["summary"] };
 }
 
+/** The last bulk action, and the decisions it replaced. */
+interface LastBulk {
+  before: Decisions;
+  count: number;
+  decision: Decision;
+}
+
 /** Groups by issue type, in the order of the brief; inside a type, in the core's order. */
 function byType(groups: IssueGroup[]): IssueGroup[] {
   return ISSUE_TYPES.flatMap((type) => groups.filter((group) => group.type === type));
@@ -65,10 +74,27 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
     .map((group) => ({ group, shown: group.issues.filter((issue) => matchesFilters(issue, filters, decisions)) }))
     .filter((entry) => entry.shown.length > 0);
   const shownIssues = visible.reduce((sum, entry) => sum + entry.shown.length, 0);
+  // SPEC S2. Like every bulk action it reaches only what is pending and on screen.
+  const sureFixes = pendingHighConfidenceFixes(visible.flatMap((entry) => entry.shown), decisions);
+  const removed = removedRows(analysis.issues, decisions);
 
-  const onDecide = (issueId: string, decision: Decision | null) => onDecisions(decide(decisions, issueId, decision));
-  const onDecideMany = (issueIds: string[], decision: Decision) =>
+  // One step of undo, for bulk actions only: the decisions as they were before the last one.
+  // Any other decision ends it. There is no history beyond this step.
+  const [lastBulk, setLastBulk] = useState<LastBulk | null>(null);
+
+  const onDecide = (issueId: string, decision: Decision | null) => {
+    setLastBulk(null);
+    onDecisions(decide(decisions, issueId, decision));
+  };
+  const onDecideMany = (issueIds: string[], decision: Decision) => {
+    setLastBulk({ before: decisions, count: issueIds.length, decision });
     onDecisions(decideMany(decisions, issueIds, decision));
+  };
+  const undoLastBulk = () => {
+    if (lastBulk === null) return;
+    onDecisions(lastBulk.before);
+    setLastBulk(null);
+  };
 
   // Each download is built from the decisions as they are at the click.
   function download(kind: "csv" | "log") {
@@ -121,6 +147,22 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
             <Filters filters={filters} onChange={setFilters} />
           </div>
 
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line py-3">
+            <p className="max-w-[70ch] text-[13px] text-muted">
+              {sureFixes.length === 0
+                ? "No pending fix with high confidence is on screen."
+                : "Accepts every pending fix with high confidence that is on screen. Flags, and fixes with medium or low confidence, stay for you to decide."}
+            </p>
+            <button
+              type="button"
+              className="btn"
+              disabled={sureFixes.length === 0}
+              onClick={() => onDecideMany(sureFixes.map((issue) => issue.id), "accepted")}
+            >
+              Accept all high-confidence fixes <span className="font-mono">({sureFixes.length})</span>
+            </button>
+          </div>
+
           {visible.map(({ group, shown }) => (
             <Group
               key={group.id}
@@ -129,6 +171,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
               decisions={decisions}
               columns={dataset.columns}
               rowsById={rowsById}
+              removedRows={removed}
               onDecide={onDecide}
               onDecideMany={onDecideMany}
             />
@@ -146,6 +189,8 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
 
       <ReviewBar
         counts={totals}
+        lastBulk={lastBulk ?? undefined}
+        onUndo={undoLastBulk}
         last={downloads.last}
         stale={stale}
         onDownloadCsv={() => download("csv")}

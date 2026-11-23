@@ -80,6 +80,28 @@ export function pendingTargets(issues: Issue[], decisions: Decisions): { fixes: 
   };
 }
 
+/**
+ * SPEC S2, "accept all high-confidence fixes": among the issues given, the pending ones that
+ * propose a fix and whose own confidence is high. Never a flag, never a decision already made.
+ */
+export function pendingHighConfidenceFixes(issues: Issue[], decisions: Decisions): Issue[] {
+  return pendingTargets(issues, decisions).fixes.filter((issue) => issue.confidence === 'high');
+}
+
+/**
+ * The rows that the accepted fixes remove, each with the row that is kept in its place.
+ * SPEC §5.6: a cell issue on such a row is dropped when the decisions are applied.
+ */
+export function removedRows(issues: Issue[], decisions: Decisions): Map<number, number> {
+  const removed = new Map<number, number>();
+  for (const issue of issues) {
+    if (issue.fix?.kind === 'delete-row' && statusOf(decisions, issue) === 'accepted') {
+      removed.set(issue.fix.rowId, issue.fix.keepRowId);
+    }
+  }
+  return removed;
+}
+
 /** True when both give every one of these issues the same status. */
 export function sameDecisions(a: Decisions, b: Decisions, issues: Issue[]): boolean {
   return issues.every((issue) => statusOf(a, issue) === statusOf(b, issue));

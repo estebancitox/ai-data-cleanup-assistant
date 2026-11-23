@@ -17,11 +17,22 @@ interface GroupProps {
   decisions: Decisions;
   columns: string[];
   rowsById: Map<number, Row>;
+  /** The rows that accepted duplicate fixes remove, each with the row kept in its place. */
+  removedRows: Map<number, number>;
   onDecide: (issueId: string, decision: Decision | null) => void;
   onDecideMany: (issueIds: string[], decision: Decision) => void;
 }
 
-export function Group({ group, shown, decisions, columns, rowsById, onDecide, onDecideMany }: GroupProps) {
+export function Group({
+  group,
+  shown,
+  decisions,
+  columns,
+  rowsById,
+  removedRows,
+  onDecide,
+  onDecideMany,
+}: GroupProps) {
   const [open, setOpen] = useState(false);
   const [limit, setLimit] = useState(PAGE_SIZE);
   const id = useId();
@@ -101,6 +112,7 @@ export function Group({ group, shown, decisions, columns, rowsById, onDecide, on
                 status={statusOf(decisions, issue)}
                 columns={columns}
                 rowsById={rowsById}
+                removedRows={removedRows}
                 onDecide={onDecide}
               />
             ))}

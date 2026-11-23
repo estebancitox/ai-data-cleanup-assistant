@@ -9,7 +9,9 @@ import {
   decide,
   decideMany,
   matchesFilters,
+  pendingHighConfidenceFixes,
   pendingTargets,
+  removedRows,
   sameDecisions,
   statusOf,
 } from './decisions';
@@ -96,6 +98,39 @@ it('a bulk action reaches pending issues only, and keeps fixes and flags apart',
   const rest = pendingTargets(issues, decisions);
   expect(rest.fixes).toEqual(withFix.slice(1));
   expect(rest.flags).toEqual(flags.slice(1));
+});
+
+it('accept all high-confidence fixes reaches pending fixes of high confidence, and no flag', () => {
+  const sure = withFix.filter((issue) => issue.confidence === 'high');
+  expect(sure.length).toBeGreaterThan(1);
+  expect(sure.length).toBeLessThan(withFix.length);
+  expect(flags.some((issue) => issue.confidence === 'high')).toBe(true);
+  expect(pendingHighConfidenceFixes(issues, {})).toEqual(sure);
+
+  // A decision made by hand, either way, takes the issue out of the bulk action.
+  const decisions: Decisions = { [sure[0].id]: 'rejected', [sure[1].id]: 'accepted' };
+  expect(pendingHighConfidenceFixes(issues, decisions)).toEqual(sure.slice(2));
+  // Only the issues given: the page passes the ones the filters show.
+  expect(pendingHighConfidenceFixes(sure.slice(0, 1), {})).toEqual(sure.slice(0, 1));
+});
+
+it('lists the rows that accepted duplicate fixes remove, with the row kept instead', () => {
+  const duplicates = issues.filter((issue) => issue.fix?.kind === 'delete-row');
+  expect(duplicates.length).toBeGreaterThan(1);
+  expect(removedRows(issues, {})).toEqual(new Map());
+  expect(removedRows(issues, { [duplicates[0].id]: 'rejected' })).toEqual(new Map());
+
+  const [first, second] = duplicates.map((issue) => {
+    if (issue.fix?.kind !== 'delete-row') throw new Error('not a duplicate');
+    return issue.fix;
+  });
+  expect(removedRows(issues, { [duplicates[0].id]: 'accepted' })).toEqual(new Map([[first.rowId, first.keepRowId]]));
+  expect(removedRows(issues, { [duplicates[0].id]: 'accepted', [duplicates[1].id]: 'accepted' })).toEqual(
+    new Map([
+      [first.rowId, first.keepRowId],
+      [second.rowId, second.keepRowId],
+    ]),
+  );
 });
 
 it('two sets of decisions are the same when every issue has the same status', () => {

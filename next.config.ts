@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // `next dev` does not write AGENTS.md into the repository.
+  agentRules: false,
   turbopack: {
     rules: {
       "*.css": {

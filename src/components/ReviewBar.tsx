@@ -1,11 +1,14 @@
 // SPEC §7.3 and §7.4: the bar that stays on screen, with the counts and the two downloads.
 
-import type { ChangeLog } from "../core/types";
+import type { ChangeLog, Decision } from "../core/types";
 import type { Counts } from "../lib/decisions";
 import { plural } from "../lib/describe";
 
 interface ReviewBarProps {
   counts: Counts;
+  /** The last bulk action, while it can still be undone. */
+  lastBulk?: { count: number; decision: Decision };
+  onUndo: () => void;
   /** The last file downloaded, and what the export behind it did. */
   last?: { name: string; summary: ChangeLog["summary"] };
   /** A file downloaded earlier was built from decisions that have changed since. */
@@ -14,7 +17,7 @@ interface ReviewBarProps {
   onDownloadLog: () => void;
 }
 
-export function ReviewBar({ counts, last, stale, onDownloadCsv, onDownloadLog }: ReviewBarProps) {
+export function ReviewBar({ counts, lastBulk, onUndo, last, stale, onDownloadCsv, onDownloadLog }: ReviewBarProps) {
   return (
     <div className="sticky bottom-0 border-t border-line bg-paper">
       <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-3">
@@ -25,6 +28,19 @@ export function ReviewBar({ counts, last, stale, onDownloadCsv, onDownloadLog }:
             <span className="font-mono font-medium">{counts.rejected}</span> rejected,{" "}
             <span className="font-mono font-medium">{counts.pending}</span> pending
           </p>
+          {/* One step back, for the last bulk action only; it is in the bar so that it is in reach
+              wherever the page is scrolled. */}
+          {lastBulk && (
+            <p className="my-1 flex flex-wrap items-center gap-2 text-[13px]">
+              <span>
+                Last bulk action: <span className="font-mono">{lastBulk.count}</span>{" "}
+                {lastBulk.count === 1 ? "issue" : "issues"} {lastBulk.decision}.
+              </span>
+              <button type="button" className="btn" onClick={onUndo}>
+                Undo
+              </button>
+            </p>
+          )}
           {stale ? (
             <p role="alert" className="text-[13px] font-medium text-accent">
               Decisions changed after a download. The files downloaded so far no longer match each other. Download
