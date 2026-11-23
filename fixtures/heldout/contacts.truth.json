@@ -1,0 +1,1824 @@
+{
+  "dataset": "contacts",
+  "generator": "scripts/generate-fixtures.mjs",
+  "seed": 20261123,
+  "note": "rows are 1-based data-row numbers in the dirty file (the header is not counted)",
+  "rowCount": {
+    "dirty": 310,
+    "clean": 300
+  },
+  "columns": [
+    "contact_id",
+    "first_name",
+    "last_name",
+    "email",
+    "phone",
+    "company",
+    "job_title",
+    "city",
+    "state",
+    "country",
+    "lead_source",
+    "signup_date",
+    "annual_revenue_usd",
+    "notes"
+  ],
+  "summary": {
+    "inconsistent": 49,
+    "suspicious": 18,
+    "missing": 22,
+    "duplicate": 10
+  },
+  "byKind": {
+    "inconsistent/case-whitespace": 12,
+    "inconsistent/semantic-variant": 12,
+    "suspicious/outlier-typo": 5,
+    "suspicious/invalid-format": 6,
+    "inconsistent/date-format-ambiguous": 2,
+    "suspicious/impossible-value": 4,
+    "missing/blank-derivable": 7,
+    "missing/placeholder": 6,
+    "inconsistent/number-format": 6,
+    "duplicate/near-duplicate": 6,
+    "suspicious/junk-record": 3,
+    "inconsistent/date-format": 6,
+    "inconsistent/cross-field": 5,
+    "missing/blank": 7,
+    "inconsistent/phone-format": 6,
+    "duplicate/exact-duplicate": 4,
+    "missing/placeholder-derivable": 2
+  },
+  "errors": [
+    {
+      "id": "E001",
+      "rows": [
+        1
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "state"
+      ],
+      "dirty": "CO ",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E002",
+      "rows": [
+        6
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "Refferal",
+      "clean": "Referral",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Referral"
+        ]
+      }
+    },
+    {
+      "id": "E003",
+      "rows": [
+        8
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "3900",
+      "clean": "3900000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "3900000"
+        ]
+      }
+    },
+    {
+      "id": "E004",
+      "rows": [
+        11
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "email"
+      ],
+      "dirty": "felix.anderson@solsticeapparel",
+      "clean": "felix.anderson@solsticeapparel.example",
+      "fix": null
+    },
+    {
+      "id": "E005",
+      "rows": [
+        15
+      ],
+      "type": "inconsistent",
+      "kind": "date-format-ambiguous",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "05/09/2024",
+      "clean": "2024-05-09",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2024-05-09"
+        ]
+      }
+    },
+    {
+      "id": "E006",
+      "rows": [
+        16
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "2031-05-02",
+      "clean": "2025-07-04",
+      "fix": null
+    },
+    {
+      "id": "E007",
+      "rows": [
+        24
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "state"
+      ],
+      "dirty": "",
+      "clean": "OH",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "OH"
+        ]
+      }
+    },
+    {
+      "id": "E008",
+      "rows": [
+        26
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "notes"
+      ],
+      "dirty": "--",
+      "clean": "Requested pricing on Apr 13; 20 seats.",
+      "fix": {
+        "column": "notes",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E009",
+      "rows": [
+        27
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "country"
+      ],
+      "dirty": "USA",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E010",
+      "rows": [
+        28
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "$1,300,000",
+      "clean": "1300000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "1300000"
+        ]
+      }
+    },
+    {
+      "id": "E011",
+      "rows": [
+        32
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Boulder ",
+      "clean": "Boulder",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Boulder"
+        ]
+      }
+    },
+    {
+      "id": "E012",
+      "rows": [
+        33
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "email"
+      ],
+      "dirty": "miles garcia@evergreenfoods.example",
+      "clean": "miles.garcia@evergreenfoods.example",
+      "fix": null
+    },
+    {
+      "id": "E013",
+      "rows": [
+        34,
+        107
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E014",
+      "rows": [
+        35,
+        178
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E015",
+      "rows": [
+        36
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E016",
+      "rows": [
+        39
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E017",
+      "rows": [
+        41
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "11/18/2024",
+      "clean": "2024-11-18",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2024-11-18"
+        ]
+      }
+    },
+    {
+      "id": "E018",
+      "rows": [
+        44
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "3900",
+      "clean": "3900000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "3900000"
+        ]
+      }
+    },
+    {
+      "id": "E019",
+      "rows": [
+        48
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "03/19/2024",
+      "clean": "2024-03-19",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2024-03-19"
+        ]
+      }
+    },
+    {
+      "id": "E020",
+      "rows": [
+        50
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "state"
+      ],
+      "dirty": "C0",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E021",
+      "rows": [
+        52
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E022",
+      "rows": [
+        55
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "09/24/2025",
+      "clean": "2025-09-24",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2025-09-24"
+        ]
+      }
+    },
+    {
+      "id": "E023",
+      "rows": [
+        64
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "",
+      "clean": "4400000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "4400000"
+        ]
+      }
+    },
+    {
+      "id": "E024",
+      "rows": [
+        66,
+        244
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E025",
+      "rows": [
+        73
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "-4500000",
+      "clean": "180000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "180000000"
+        ]
+      }
+    },
+    {
+      "id": "E026",
+      "rows": [
+        75,
+        146
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E027",
+      "rows": [
+        78
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": " Web",
+      "clean": "Web",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Web"
+        ]
+      }
+    },
+    {
+      "id": "E028",
+      "rows": [
+        83
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "state",
+        "city"
+      ],
+      "dirty": "FL",
+      "clean": "GA",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "GA"
+        ]
+      }
+    },
+    {
+      "id": "E029",
+      "rows": [
+        86
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "Website",
+      "clean": "Web",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Web"
+        ]
+      }
+    },
+    {
+      "id": "E030",
+      "rows": [
+        89
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "email"
+      ],
+      "dirty": "",
+      "clean": "valentina.evans@halcyonhotels.example",
+      "fix": null
+    },
+    {
+      "id": "E031",
+      "rows": [
+        94
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "state"
+      ],
+      "dirty": "",
+      "clean": "TN",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "TN"
+        ]
+      }
+    },
+    {
+      "id": "E032",
+      "rows": [
+        95
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "4400000000",
+      "clean": "4400000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "4400000"
+        ]
+      }
+    },
+    {
+      "id": "E033",
+      "rows": [
+        97
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "Website",
+      "clean": "Web",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Web"
+        ]
+      }
+    },
+    {
+      "id": "E034",
+      "rows": [
+        99
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "AUSTIN",
+      "clean": "Austin",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Austin"
+        ]
+      }
+    },
+    {
+      "id": "E035",
+      "rows": [
+        101
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "(503) 555-01",
+      "clean": "(503) 555-0129",
+      "fix": null
+    },
+    {
+      "id": "E036",
+      "rows": [
+        103
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "Event ",
+      "clean": "Event",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Event"
+        ]
+      }
+    },
+    {
+      "id": "E037",
+      "rows": [
+        104
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "180,000,000",
+      "clean": "180000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "180000000"
+        ]
+      }
+    },
+    {
+      "id": "E038",
+      "rows": [
+        106
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "04/27/2024",
+      "clean": "2024-04-27",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2024-04-27"
+        ]
+      }
+    },
+    {
+      "id": "E039",
+      "rows": [
+        110
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "country"
+      ],
+      "dirty": "US ",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E040",
+      "rows": [
+        112
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "",
+      "clean": "380000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "380000000"
+        ]
+      }
+    },
+    {
+      "id": "E041",
+      "rows": [
+        119
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "$32,000,000",
+      "clean": "32000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "32000000"
+        ]
+      }
+    },
+    {
+      "id": "E042",
+      "rows": [
+        120
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "country"
+      ],
+      "dirty": "USA",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E043",
+      "rows": [
+        121
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "+1 312 555 0140",
+      "clean": "(312) 555-0140",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(312) 555-0140"
+        ]
+      }
+    },
+    {
+      "id": "E044",
+      "rows": [
+        123
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "",
+      "clean": "(404) 555-0109",
+      "fix": null
+    },
+    {
+      "id": "E045",
+      "rows": [
+        128
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "state"
+      ],
+      "dirty": "",
+      "clean": "IL",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "IL"
+        ]
+      }
+    },
+    {
+      "id": "E046",
+      "rows": [
+        129
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "05/20/2026",
+      "clean": "2026-05-20",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2026-05-20"
+        ]
+      }
+    },
+    {
+      "id": "E047",
+      "rows": [
+        130
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "390000000000",
+      "clean": "390000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "390000000"
+        ]
+      }
+    },
+    {
+      "id": "E048",
+      "rows": [
+        131,
+        262
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E049",
+      "rows": [
+        133
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "0",
+      "clean": "3300000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "3300000000"
+        ]
+      }
+    },
+    {
+      "id": "E050",
+      "rows": [
+        134
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "1900-01-01",
+      "clean": "2026-03-24",
+      "fix": null
+    },
+    {
+      "id": "E051",
+      "rows": [
+        139
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "$ 4200000",
+      "clean": "4200000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "4200000"
+        ]
+      }
+    },
+    {
+      "id": "E052",
+      "rows": [
+        140
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "state",
+        "city"
+      ],
+      "dirty": "NC",
+      "clean": "OR",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "OR"
+        ]
+      }
+    },
+    {
+      "id": "E053",
+      "rows": [
+        141
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "email"
+      ],
+      "dirty": "",
+      "clean": "layla.jimenez@keystonestaffing.example",
+      "fix": null
+    },
+    {
+      "id": "E054",
+      "rows": [
+        142
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "$390,000,000",
+      "clean": "390000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "390000000"
+        ]
+      }
+    },
+    {
+      "id": "E055",
+      "rows": [
+        143
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "job_title"
+      ],
+      "dirty": "",
+      "clean": "IT Manager",
+      "fix": null
+    },
+    {
+      "id": "E056",
+      "rows": [
+        144
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "country"
+      ],
+      "dirty": "United States",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E057",
+      "rows": [
+        145
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "",
+      "clean": "(614) 555-0129",
+      "fix": null
+    },
+    {
+      "id": "E058",
+      "rows": [
+        147,
+        196
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E059",
+      "rows": [
+        150
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "4045550146",
+      "clean": "(404) 555-0146",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(404) 555-0146"
+        ]
+      }
+    },
+    {
+      "id": "E060",
+      "rows": [
+        161
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "email"
+      ],
+      "dirty": "martin.rossi.riverbendlegal.example",
+      "clean": "martin.rossi@riverbendlegal.example",
+      "fix": null
+    },
+    {
+      "id": "E061",
+      "rows": [
+        164
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "state"
+      ],
+      "dirty": "n/a",
+      "clean": "GA",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "GA",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E062",
+      "rows": [
+        171
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "Referal",
+      "clean": "Referral",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Referral"
+        ]
+      }
+    },
+    {
+      "id": "E063",
+      "rows": [
+        173
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "404-555-0122",
+      "clean": "(404) 555-0122",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(404) 555-0122"
+        ]
+      }
+    },
+    {
+      "id": "E064",
+      "rows": [
+        181
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "",
+      "clean": "(617) 555-0160",
+      "fix": null
+    },
+    {
+      "id": "E065",
+      "rows": [
+        184,
+        204
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E066",
+      "rows": [
+        186
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "none",
+      "clean": "(615) 555-0176",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E067",
+      "rows": [
+        187
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "notes"
+      ],
+      "dirty": "TBD",
+      "clean": "Intro from a customer on Jun 6; 20 seats.",
+      "fix": {
+        "column": "notes",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E068",
+      "rows": [
+        188,
+        234
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E069",
+      "rows": [
+        193
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "web",
+      "clean": "Web",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Web"
+        ]
+      }
+    },
+    {
+      "id": "E070",
+      "rows": [
+        194
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "state",
+        "city"
+      ],
+      "dirty": "OR",
+      "clean": "TN",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "TN"
+        ]
+      }
+    },
+    {
+      "id": "E071",
+      "rows": [
+        199
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "state"
+      ],
+      "dirty": "ma",
+      "clean": "MA",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "MA"
+        ]
+      }
+    },
+    {
+      "id": "E072",
+      "rows": [
+        209
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "state"
+      ],
+      "dirty": "",
+      "clean": "OH",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "OH"
+        ]
+      }
+    },
+    {
+      "id": "E073",
+      "rows": [
+        212
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "39000000000",
+      "clean": "390000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "390000000"
+        ]
+      }
+    },
+    {
+      "id": "E074",
+      "rows": [
+        214
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "312.555.0174",
+      "clean": "(312) 555-0174",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(312) 555-0174"
+        ]
+      }
+    },
+    {
+      "id": "E075",
+      "rows": [
+        218,
+        227
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E076",
+      "rows": [
+        223
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "",
+      "clean": "32000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "32000000"
+        ]
+      }
+    },
+    {
+      "id": "E077",
+      "rows": [
+        224
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "country"
+      ],
+      "dirty": "United States",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E078",
+      "rows": [
+        229
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Wash.",
+      "clean": "WA",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "WA"
+        ]
+      }
+    },
+    {
+      "id": "E079",
+      "rows": [
+        247
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": " Austin",
+      "clean": "Austin",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Austin"
+        ]
+      }
+    },
+    {
+      "id": "E080",
+      "rows": [
+        250
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "country"
+      ],
+      "dirty": "U.S.",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E081",
+      "rows": [
+        254
+      ],
+      "type": "inconsistent",
+      "kind": "date-format-ambiguous",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "10/02/2026",
+      "clean": "2026-10-02",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2026-10-02"
+        ]
+      }
+    },
+    {
+      "id": "E082",
+      "rows": [
+        260
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "job_title"
+      ],
+      "dirty": "-",
+      "clean": "CFO",
+      "fix": {
+        "column": "job_title",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E083",
+      "rows": [
+        261
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "job_title"
+      ],
+      "dirty": "unknown",
+      "clean": "Account Executive",
+      "fix": {
+        "column": "job_title",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E084",
+      "rows": [
+        265
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "614.555.0135",
+      "clean": "(614) 555-0135",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(614) 555-0135"
+        ]
+      }
+    },
+    {
+      "id": "E085",
+      "rows": [
+        268
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Texas",
+      "clean": "TX",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "TX"
+        ]
+      }
+    },
+    {
+      "id": "E086",
+      "rows": [
+        274
+      ],
+      "type": "inconsistent",
+      "kind": "phone-format",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "6025550171",
+      "clean": "(602) 555-0171",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          "(602) 555-0171"
+        ]
+      }
+    },
+    {
+      "id": "E087",
+      "rows": [
+        275,
+        277
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E088",
+      "rows": [
+        276
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "country"
+      ],
+      "dirty": " US",
+      "clean": "US",
+      "fix": {
+        "column": "country",
+        "accept": [
+          "US"
+        ]
+      }
+    },
+    {
+      "id": "E089",
+      "rows": [
+        280
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "16,000,000",
+      "clean": "16000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "16000000"
+        ]
+      }
+    },
+    {
+      "id": "E090",
+      "rows": [
+        282
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "job_title"
+      ],
+      "dirty": "",
+      "clean": "Founder",
+      "fix": null
+    },
+    {
+      "id": "E091",
+      "rows": [
+        284
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "signup_date"
+      ],
+      "dirty": "Dec 29, 2025",
+      "clean": "2025-12-29",
+      "fix": {
+        "column": "signup_date",
+        "accept": [
+          "2025-12-29"
+        ]
+      }
+    },
+    {
+      "id": "E092",
+      "rows": [
+        287
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "email"
+      ],
+      "dirty": "olivia.foster@@beacontelecom.example",
+      "clean": "olivia.foster@beacontelecom.example",
+      "fix": null
+    },
+    {
+      "id": "E093",
+      "rows": [
+        288
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "phone"
+      ],
+      "dirty": "N/A",
+      "clean": "(617) 555-0173",
+      "fix": {
+        "column": "phone",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E094",
+      "rows": [
+        289
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colorado",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E095",
+      "rows": [
+        291
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "state",
+        "city"
+      ],
+      "dirty": "AZ",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E096",
+      "rows": [
+        293
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "state",
+        "city"
+      ],
+      "dirty": "IL",
+      "clean": "WA",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "WA"
+        ]
+      }
+    },
+    {
+      "id": "E097",
+      "rows": [
+        295
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "dirty": "NULL",
+      "clean": "3300000000",
+      "fix": {
+        "column": "annual_revenue_usd",
+        "accept": [
+          "3300000000",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E098",
+      "rows": [
+        296
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "lead_source"
+      ],
+      "dirty": "WEB",
+      "clean": "Web",
+      "fix": {
+        "column": "lead_source",
+        "accept": [
+          "Web"
+        ]
+      }
+    },
+    {
+      "id": "E099",
+      "rows": [
+        304
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "state"
+      ],
+      "dirty": " CO",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    }
+  ],
+  "traps": [
+    {
+      "id": "T01",
+      "rows": [
+        13,
+        310
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Two different people with the same name at different companies."
+    },
+    {
+      "id": "T02",
+      "rows": [
+        21,
+        26,
+        40,
+        53,
+        67,
+        99,
+        115,
+        124,
+        154,
+        170,
+        180,
+        193,
+        215,
+        244,
+        247,
+        249,
+        250,
+        268,
+        276,
+        279,
+        301
+      ],
+      "kind": "legit-outlier",
+      "columns": [
+        "annual_revenue_usd"
+      ],
+      "note": "Large company: the revenue is extreme but identical for every contact of that company."
+    },
+    {
+      "id": "T03",
+      "rows": [
+        88,
+        92
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Colleagues with near-identical names (Daniel and Daniela Reyes)."
+    },
+    {
+      "id": "T04",
+      "rows": [
+        108,
+        192
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Two different people with the same name at different companies."
+    }
+  ]
+}

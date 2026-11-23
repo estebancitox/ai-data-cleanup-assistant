@@ -1,0 +1,2320 @@
+{
+  "dataset": "listings",
+  "generator": "scripts/generate-fixtures.mjs",
+  "seed": 20261123,
+  "note": "rows are 1-based data-row numbers in the dirty file (the header is not counted)",
+  "rowCount": {
+    "dirty": 414,
+    "clean": 400
+  },
+  "columns": [
+    "listing_id",
+    "address",
+    "city",
+    "state",
+    "zip",
+    "property_type",
+    "bedrooms",
+    "bathrooms",
+    "sqft",
+    "year_built",
+    "list_price",
+    "list_date",
+    "status",
+    "agent_name",
+    "agent_email",
+    "remarks"
+  ],
+  "summary": {
+    "suspicious": 23,
+    "inconsistent": 61,
+    "missing": 32,
+    "duplicate": 14
+  },
+  "byKind": {
+    "suspicious/impossible-value": 6,
+    "inconsistent/date-format": 9,
+    "inconsistent/cross-field": 6,
+    "missing/blank": 12,
+    "suspicious/invalid-format": 6,
+    "inconsistent/semantic-variant": 17,
+    "duplicate/near-duplicate": 8,
+    "duplicate/exact-duplicate": 6,
+    "missing/placeholder": 8,
+    "inconsistent/number-format": 8,
+    "inconsistent/case-whitespace": 18,
+    "suspicious/junk-record": 3,
+    "missing/placeholder-derivable": 4,
+    "suspicious/outlier-typo": 8,
+    "missing/blank-derivable": 8,
+    "inconsistent/date-format-ambiguous": 3
+  },
+  "errors": [
+    {
+      "id": "E001",
+      "rows": [
+        1
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "1087",
+      "clean": "1981",
+      "fix": null
+    },
+    {
+      "id": "E002",
+      "rows": [
+        3
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "Apr 23, 2026",
+      "clean": "2026-04-23",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-04-23"
+        ]
+      }
+    },
+    {
+      "id": "E003",
+      "rows": [
+        6
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Broomfield",
+      "clean": "Arvada",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Arvada"
+        ]
+      }
+    },
+    {
+      "id": "E004",
+      "rows": [
+        13
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "",
+      "clean": "890",
+      "fix": null
+    },
+    {
+      "id": "E005",
+      "rows": [
+        15
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "naomi.clarke.columbinegroup.example",
+      "clean": "naomi.clarke@columbinegroup.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "naomi.clarke@columbinegroup.example"
+        ]
+      }
+    },
+    {
+      "id": "E006",
+      "rows": [
+        18
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Bolder",
+      "clean": "Boulder",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Boulder"
+        ]
+      }
+    },
+    {
+      "id": "E007",
+      "rows": [
+        20,
+        376
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E008",
+      "rows": [
+        23,
+        236
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E009",
+      "rows": [
+        25
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "N/A",
+      "clean": "2110",
+      "fix": {
+        "column": "sqft",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E010",
+      "rows": [
+        28
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "$289,000",
+      "clean": "289000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "289000"
+        ]
+      }
+    },
+    {
+      "id": "E011",
+      "rows": [
+        29,
+        259
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E012",
+      "rows": [
+        30
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "WESTMINSTER",
+      "clean": "Westminster",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Westminster"
+        ]
+      }
+    },
+    {
+      "id": "E013",
+      "rows": [
+        31,
+        356
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E014",
+      "rows": [
+        45
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E015",
+      "rows": [
+        46
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "Single Family ",
+      "clean": "Single Family",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Single Family"
+        ]
+      }
+    },
+    {
+      "id": "E016",
+      "rows": [
+        49
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "status"
+      ],
+      "dirty": "Closed",
+      "clean": "Sold",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Sold"
+        ]
+      }
+    },
+    {
+      "id": "E017",
+      "rows": [
+        50
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "N/A",
+      "clean": "elena.vasquez@columbinegroup.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "elena.vasquez@columbinegroup.example",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E018",
+      "rows": [
+        51,
+        341
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E019",
+      "rows": [
+        52
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "SFR",
+      "clean": "Single Family",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Single Family"
+        ]
+      }
+    },
+    {
+      "id": "E020",
+      "rows": [
+        55
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": " Aurora",
+      "clean": "Aurora",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Aurora"
+        ]
+      }
+    },
+    {
+      "id": "E021",
+      "rows": [
+        57
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "",
+      "clean": "2500",
+      "fix": null
+    },
+    {
+      "id": "E022",
+      "rows": [
+        59
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "1",
+      "clean": "369000",
+      "fix": null
+    },
+    {
+      "id": "E023",
+      "rows": [
+        60
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "zip"
+      ],
+      "dirty": "8090",
+      "clean": "80906",
+      "fix": null
+    },
+    {
+      "id": "E024",
+      "rows": [
+        65
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "5400",
+      "clean": "540000",
+      "fix": null
+    },
+    {
+      "id": "E025",
+      "rows": [
+        66
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "status"
+      ],
+      "dirty": "Actv",
+      "clean": "Active",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Active"
+        ]
+      }
+    },
+    {
+      "id": "E026",
+      "rows": [
+        70
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "unknown",
+      "clean": "megan.holloway@summitrealty.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "megan.holloway@summitrealty.example",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E027",
+      "rows": [
+        74
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "status"
+      ],
+      "dirty": "Sold ",
+      "clean": "Sold",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Sold"
+        ]
+      }
+    },
+    {
+      "id": "E028",
+      "rows": [
+        77
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E029",
+      "rows": [
+        78
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "fort collins ",
+      "clean": "Fort Collins",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Fort Collins"
+        ]
+      }
+    },
+    {
+      "id": "E030",
+      "rows": [
+        85
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "bedrooms"
+      ],
+      "dirty": "",
+      "clean": "6",
+      "fix": null
+    },
+    {
+      "id": "E031",
+      "rows": [
+        89
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colo.",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E032",
+      "rows": [
+        96,
+        402
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E033",
+      "rows": [
+        103
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "?",
+      "clean": "1951",
+      "fix": {
+        "column": "year_built",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E034",
+      "rows": [
+        105
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "Jun 28, 2026",
+      "clean": "2026-06-28",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-06-28"
+        ]
+      }
+    },
+    {
+      "id": "E035",
+      "rows": [
+        106
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E036",
+      "rows": [
+        110
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "SINGLE FAMILY",
+      "clean": "Single Family",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Single Family"
+        ]
+      }
+    },
+    {
+      "id": "E037",
+      "rows": [
+        118
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "0",
+      "clean": "618000",
+      "fix": null
+    },
+    {
+      "id": "E038",
+      "rows": [
+        120
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colorado",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E039",
+      "rows": [
+        121,
+        148
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E040",
+      "rows": [
+        123
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Ft. Collins",
+      "clean": "Fort Collins",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Fort Collins"
+        ]
+      }
+    },
+    {
+      "id": "E041",
+      "rows": [
+        126
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "Town Home",
+      "clean": "Townhouse",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Townhouse"
+        ]
+      }
+    },
+    {
+      "id": "E042",
+      "rows": [
+        128
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "$753,000",
+      "clean": "753000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "753000"
+        ]
+      }
+    },
+    {
+      "id": "E043",
+      "rows": [
+        134
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "",
+      "clean": "1150",
+      "fix": null
+    },
+    {
+      "id": "E044",
+      "rows": [
+        138
+      ],
+      "type": "inconsistent",
+      "kind": "date-format-ambiguous",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "06/03/2026",
+      "clean": "2026-06-03",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-06-03"
+        ]
+      }
+    },
+    {
+      "id": "E045",
+      "rows": [
+        139
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "bathrooms"
+      ],
+      "dirty": "25",
+      "clean": "2",
+      "fix": null
+    },
+    {
+      "id": "E046",
+      "rows": [
+        141
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "-",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E047",
+      "rows": [
+        146,
+        287
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E048",
+      "rows": [
+        150
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Boulder",
+      "clean": "Arvada",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Arvada"
+        ]
+      }
+    },
+    {
+      "id": "E049",
+      "rows": [
+        155
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "denver",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E050",
+      "rows": [
+        158
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "SFR",
+      "clean": "Single Family",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Single Family"
+        ]
+      }
+    },
+    {
+      "id": "E051",
+      "rows": [
+        159
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "",
+      "clean": "2001",
+      "fix": null
+    },
+    {
+      "id": "E052",
+      "rows": [
+        174
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "775,000",
+      "clean": "775000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "775000"
+        ]
+      }
+    },
+    {
+      "id": "E053",
+      "rows": [
+        178,
+        266
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E054",
+      "rows": [
+        182
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E055",
+      "rows": [
+        183
+      ],
+      "type": "inconsistent",
+      "kind": "date-format-ambiguous",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "08/06/2026",
+      "clean": "2026-08-06",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-08-06"
+        ]
+      }
+    },
+    {
+      "id": "E056",
+      "rows": [
+        189
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "2206",
+      "clean": "2016",
+      "fix": null
+    },
+    {
+      "id": "E057",
+      "rows": [
+        191
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "791,000",
+      "clean": "791000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "791000"
+        ]
+      }
+    },
+    {
+      "id": "E058",
+      "rows": [
+        192
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "08/30/2026",
+      "clean": "2026-08-30",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-08-30"
+        ]
+      }
+    },
+    {
+      "id": "E059",
+      "rows": [
+        193
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": " Townhouse",
+      "clean": "Townhouse",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Townhouse"
+        ]
+      }
+    },
+    {
+      "id": "E060",
+      "rows": [
+        194
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "",
+      "clean": "renee.dubois@summitrealty.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "renee.dubois@summitrealty.example"
+        ]
+      }
+    },
+    {
+      "id": "E061",
+      "rows": [
+        197
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Denver ",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E062",
+      "rows": [
+        199
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "status"
+      ],
+      "dirty": " Sold",
+      "clean": "Sold",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Sold"
+        ]
+      }
+    },
+    {
+      "id": "E063",
+      "rows": [
+        205,
+        297
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E064",
+      "rows": [
+        207
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "-1200",
+      "clean": "1020",
+      "fix": null
+    },
+    {
+      "id": "E065",
+      "rows": [
+        210
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "-",
+      "clean": "860",
+      "fix": {
+        "column": "sqft",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E066",
+      "rows": [
+        212,
+        289
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E067",
+      "rows": [
+        216
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "unknown",
+      "clean": "1400",
+      "fix": {
+        "column": "sqft",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E068",
+      "rows": [
+        218
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "83",
+      "clean": "830",
+      "fix": null
+    },
+    {
+      "id": "E069",
+      "rows": [
+        219
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Fort  Collins",
+      "clean": "Fort Collins",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Fort Collins"
+        ]
+      }
+    },
+    {
+      "id": "E070",
+      "rows": [
+        220
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "arvada",
+      "clean": "Arvada",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Arvada"
+        ]
+      }
+    },
+    {
+      "id": "E071",
+      "rows": [
+        222
+      ],
+      "type": "missing",
+      "kind": "placeholder-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "TBD",
+      "clean": "Colorado Springs",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Colorado Springs",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E072",
+      "rows": [
+        223
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colorado",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E073",
+      "rows": [
+        225,
+        321
+      ],
+      "type": "duplicate",
+      "kind": "near-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E074",
+      "rows": [
+        226
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "03/18/2026",
+      "clean": "2026-03-18",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-03-18"
+        ]
+      }
+    },
+    {
+      "id": "E075",
+      "rows": [
+        230
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Aurora",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E076",
+      "rows": [
+        231
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "zip"
+      ],
+      "dirty": "8O220",
+      "clean": "80220",
+      "fix": null
+    },
+    {
+      "id": "E077",
+      "rows": [
+        234
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colo.",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E078",
+      "rows": [
+        241
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "bedrooms"
+      ],
+      "dirty": "",
+      "clean": "4",
+      "fix": null
+    },
+    {
+      "id": "E079",
+      "rows": [
+        244
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "",
+      "clean": "camila.ortega@summitrealty.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "camila.ortega@summitrealty.example"
+        ]
+      }
+    },
+    {
+      "id": "E080",
+      "rows": [
+        245
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Colo Springs",
+      "clean": "Colorado Springs",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Colorado Springs"
+        ]
+      }
+    },
+    {
+      "id": "E081",
+      "rows": [
+        254,
+        299
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E082",
+      "rows": [
+        257
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "$469,000",
+      "clean": "469000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "469000"
+        ]
+      }
+    },
+    {
+      "id": "E083",
+      "rows": [
+        261
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Boulder",
+      "clean": "Fort Collins",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Fort Collins"
+        ]
+      }
+    },
+    {
+      "id": "E084",
+      "rows": [
+        263
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "20300",
+      "clean": "2030",
+      "fix": null
+    },
+    {
+      "id": "E085",
+      "rows": [
+        265
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "$ 556000",
+      "clean": "556000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "556000"
+        ]
+      }
+    },
+    {
+      "id": "E086",
+      "rows": [
+        271
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "single family ",
+      "clean": "Single Family",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Single Family"
+        ]
+      }
+    },
+    {
+      "id": "E087",
+      "rows": [
+        273
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "remarks"
+      ],
+      "dirty": "n/a",
+      "clean": "Corner lot with mature trees and a fenced yard. Taxes $2,290/yr.",
+      "fix": {
+        "column": "remarks",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E088",
+      "rows": [
+        274
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "status"
+      ],
+      "dirty": "active ",
+      "clean": "Active",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Active"
+        ]
+      }
+    },
+    {
+      "id": "E089",
+      "rows": [
+        277
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E090",
+      "rows": [
+        284
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "city"
+      ],
+      "dirty": "FORT COLLINS",
+      "clean": "Fort Collins",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Fort Collins"
+        ]
+      }
+    },
+    {
+      "id": "E091",
+      "rows": [
+        285
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "",
+      "clean": "naomi.clarke@columbinegroup.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "naomi.clarke@columbinegroup.example"
+        ]
+      }
+    },
+    {
+      "id": "E092",
+      "rows": [
+        291
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "status"
+      ],
+      "dirty": "Closed",
+      "clean": "Sold",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Sold"
+        ]
+      }
+    },
+    {
+      "id": "E093",
+      "rows": [
+        293
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "",
+      "clean": "2011",
+      "fix": null
+    },
+    {
+      "id": "E094",
+      "rows": [
+        294
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Northglenn",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E095",
+      "rows": [
+        307
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "city"
+      ],
+      "dirty": "Denvr",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    },
+    {
+      "id": "E096",
+      "rows": [
+        309
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "status"
+      ],
+      "dirty": "Withdrawn  ",
+      "clean": "Withdrawn",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Withdrawn"
+        ]
+      }
+    },
+    {
+      "id": "E097",
+      "rows": [
+        312
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "",
+      "clean": "1994",
+      "fix": null
+    },
+    {
+      "id": "E098",
+      "rows": [
+        313
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "07/25/2026",
+      "clean": "2026-07-25",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-07-25"
+        ]
+      }
+    },
+    {
+      "id": "E099",
+      "rows": [
+        327
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "01/30/2026",
+      "clean": "2026-01-30",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-01-30"
+        ]
+      }
+    },
+    {
+      "id": "E100",
+      "rows": [
+        330
+      ],
+      "type": "suspicious",
+      "kind": "impossible-value",
+      "columns": [
+        "bedrooms"
+      ],
+      "dirty": "-2",
+      "clean": "3",
+      "fix": null
+    },
+    {
+      "id": "E101",
+      "rows": [
+        334
+      ],
+      "type": "suspicious",
+      "kind": "junk-record",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E102",
+      "rows": [
+        337
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "07/23/2026",
+      "clean": "2026-07-23",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-07-23"
+        ]
+      }
+    },
+    {
+      "id": "E103",
+      "rows": [
+        339
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "04/13/2026",
+      "clean": "2026-04-13",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-04-13"
+        ]
+      }
+    },
+    {
+      "id": "E104",
+      "rows": [
+        343
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "marcus.reid@@milehighhomes.example",
+      "clean": "marcus.reid@milehighhomes.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "marcus.reid@milehighhomes.example"
+        ]
+      }
+    },
+    {
+      "id": "E105",
+      "rows": [
+        345
+      ],
+      "type": "inconsistent",
+      "kind": "date-format-ambiguous",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "07/08/2026",
+      "clean": "2026-07-08",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-07-08"
+        ]
+      }
+    },
+    {
+      "id": "E106",
+      "rows": [
+        346
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "state"
+      ],
+      "dirty": "Colorado",
+      "clean": "CO",
+      "fix": {
+        "column": "state",
+        "accept": [
+          "CO"
+        ]
+      }
+    },
+    {
+      "id": "E107",
+      "rows": [
+        347
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "bedrooms"
+      ],
+      "dirty": "45",
+      "clean": "2",
+      "fix": null
+    },
+    {
+      "id": "E108",
+      "rows": [
+        352
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "$754,000",
+      "clean": "754000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "754000"
+        ]
+      }
+    },
+    {
+      "id": "E109",
+      "rows": [
+        354
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "status"
+      ],
+      "dirty": "sold",
+      "clean": "Sold",
+      "fix": {
+        "column": "status",
+        "accept": [
+          "Sold"
+        ]
+      }
+    },
+    {
+      "id": "E110",
+      "rows": [
+        358
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "Condominium",
+      "clean": "Condo",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Condo"
+        ]
+      }
+    },
+    {
+      "id": "E111",
+      "rows": [
+        364
+      ],
+      "type": "inconsistent",
+      "kind": "number-format",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "664,000",
+      "clean": "664000",
+      "fix": {
+        "column": "list_price",
+        "accept": [
+          "664000"
+        ]
+      }
+    },
+    {
+      "id": "E112",
+      "rows": [
+        366
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "remarks"
+      ],
+      "dirty": "null",
+      "clean": "Walk to light rail, shops, and restaurants. Taxes $2,552/yr.",
+      "fix": {
+        "column": "remarks",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E113",
+      "rows": [
+        369
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "zip"
+      ],
+      "dirty": "80-203",
+      "clean": "80203",
+      "fix": null
+    },
+    {
+      "id": "E114",
+      "rows": [
+        373
+      ],
+      "type": "inconsistent",
+      "kind": "date-format",
+      "columns": [
+        "list_date"
+      ],
+      "dirty": "06/24/2026",
+      "clean": "2026-06-24",
+      "fix": {
+        "column": "list_date",
+        "accept": [
+          "2026-06-24"
+        ]
+      }
+    },
+    {
+      "id": "E115",
+      "rows": [
+        375,
+        409
+      ],
+      "type": "duplicate",
+      "kind": "exact-duplicate",
+      "columns": [],
+      "fix": null
+    },
+    {
+      "id": "E116",
+      "rows": [
+        377
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "bedrooms"
+      ],
+      "dirty": "",
+      "clean": "4",
+      "fix": null
+    },
+    {
+      "id": "E117",
+      "rows": [
+        380
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "13960000",
+      "clean": "1396000",
+      "fix": null
+    },
+    {
+      "id": "E118",
+      "rows": [
+        383
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "TBD",
+      "clean": "1968",
+      "fix": {
+        "column": "year_built",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E119",
+      "rows": [
+        387
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "",
+      "clean": "2023",
+      "fix": null
+    },
+    {
+      "id": "E120",
+      "rows": [
+        388
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "4650000",
+      "clean": "465000",
+      "fix": null
+    },
+    {
+      "id": "E121",
+      "rows": [
+        390
+      ],
+      "type": "suspicious",
+      "kind": "outlier-typo",
+      "columns": [
+        "list_price"
+      ],
+      "dirty": "9070",
+      "clean": "907000",
+      "fix": null
+    },
+    {
+      "id": "E122",
+      "rows": [
+        392
+      ],
+      "type": "inconsistent",
+      "kind": "semantic-variant",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "Condominium",
+      "clean": "Condo",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Condo"
+        ]
+      }
+    },
+    {
+      "id": "E123",
+      "rows": [
+        394
+      ],
+      "type": "suspicious",
+      "kind": "invalid-format",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "hannah whitfield@frontrangeproperties.example",
+      "clean": "hannah.whitfield@frontrangeproperties.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "hannah.whitfield@frontrangeproperties.example"
+        ]
+      }
+    },
+    {
+      "id": "E124",
+      "rows": [
+        397
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "agent_email"
+      ],
+      "dirty": "",
+      "clean": "hannah.whitfield@frontrangeproperties.example",
+      "fix": {
+        "column": "agent_email",
+        "accept": [
+          "hannah.whitfield@frontrangeproperties.example"
+        ]
+      }
+    },
+    {
+      "id": "E125",
+      "rows": [
+        399
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "",
+      "clean": "2050",
+      "fix": null
+    },
+    {
+      "id": "E126",
+      "rows": [
+        400
+      ],
+      "type": "inconsistent",
+      "kind": "cross-field",
+      "columns": [
+        "city",
+        "zip"
+      ],
+      "dirty": "Westminster",
+      "clean": "Aurora",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Aurora"
+        ]
+      }
+    },
+    {
+      "id": "E127",
+      "rows": [
+        405
+      ],
+      "type": "inconsistent",
+      "kind": "case-whitespace",
+      "columns": [
+        "property_type"
+      ],
+      "dirty": "Townhouse  ",
+      "clean": "Townhouse",
+      "fix": {
+        "column": "property_type",
+        "accept": [
+          "Townhouse"
+        ]
+      }
+    },
+    {
+      "id": "E128",
+      "rows": [
+        408
+      ],
+      "type": "missing",
+      "kind": "blank",
+      "columns": [
+        "sqft"
+      ],
+      "dirty": "",
+      "clean": "1100",
+      "fix": null
+    },
+    {
+      "id": "E129",
+      "rows": [
+        412
+      ],
+      "type": "missing",
+      "kind": "placeholder",
+      "columns": [
+        "year_built"
+      ],
+      "dirty": "N/A",
+      "clean": "2002",
+      "fix": {
+        "column": "year_built",
+        "accept": [
+          ""
+        ]
+      }
+    },
+    {
+      "id": "E130",
+      "rows": [
+        414
+      ],
+      "type": "missing",
+      "kind": "blank-derivable",
+      "columns": [
+        "city"
+      ],
+      "dirty": "",
+      "clean": "Denver",
+      "fix": {
+        "column": "city",
+        "accept": [
+          "Denver"
+        ]
+      }
+    }
+  ],
+  "traps": [
+    {
+      "id": "T01",
+      "rows": [
+        43
+      ],
+      "kind": "legit-outlier",
+      "note": "Luxury home: price and size are extreme but consistent with each other."
+    },
+    {
+      "id": "T02",
+      "rows": [
+        54,
+        239
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Same building, different unit (4A and 4B)."
+    },
+    {
+      "id": "T03",
+      "rows": [
+        122,
+        301
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Same building, units 12 and 21."
+    },
+    {
+      "id": "T04",
+      "rows": [
+        157,
+        370
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Same street address in two different cities."
+    },
+    {
+      "id": "T05",
+      "rows": [
+        175
+      ],
+      "kind": "legit-outlier",
+      "note": "Historic home: 1889 is old, not a typo."
+    },
+    {
+      "id": "T06",
+      "rows": [
+        296
+      ],
+      "kind": "legit-outlier",
+      "note": "Micro condo: very small and cheap, but real."
+    },
+    {
+      "id": "T07",
+      "rows": [
+        314,
+        350
+      ],
+      "kind": "similar-not-duplicate",
+      "note": "Next-door townhouses (2231 and 2233) with the same agent."
+    },
+    {
+      "id": "T08",
+      "rows": [
+        316
+      ],
+      "kind": "legit-outlier",
+      "note": "Luxury home: price and size are extreme but consistent with each other."
+    }
+  ]
+}
