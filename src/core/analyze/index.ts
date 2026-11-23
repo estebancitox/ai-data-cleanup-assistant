@@ -1,15 +1,17 @@
-// Finds every issue in a dataset. SPEC §5.4 and §5.6.
+// Finds every issue in a dataset. SPEC §5.4 to §5.6.
 
 import { profileDataset } from '../profile';
-import type { Analysis, Confidence, Dataset, Issue, IssueGroup, VerifiedContract } from '../types';
+import type { Analysis, Confidence, Dataset, Issue, IssueGroup, Profile, VerifiedContract } from '../types';
+import { detectCanonicalValue, detectFlaggedValue, detectMissingToken, detectRange } from './detectors/contract-values';
 import { detectDateFormat } from './detectors/date-format';
+import { detectDependency } from './detectors/dependency';
 import { detectDuplicates } from './detectors/duplicates';
 import { detectMissing } from './detectors/missing';
 import { detectNumberFormat } from './detectors/number-format';
 import { detectOutliers } from './detectors/outlier';
 import { detectShape } from './detectors/shape';
 import { detectSpelling } from './detectors/spelling';
-import { issueId, onePerCell } from './precedence';
+import { issueId, onePerCell, type Candidate } from './precedence';
 
 export { NEAR_DUPLICATE_MIN_SIMILARITY } from './detectors/duplicates';
 
@@ -21,13 +23,21 @@ export { NEAR_DUPLICATE_MIN_SIMILARITY } from './detectors/duplicates';
  */
 export function analyze(dataset: Dataset, contract?: VerifiedContract): Analysis {
   const profile = profileDataset(dataset);
-  // Cell detectors in the precedence order of §5.6: R3, R5, R6, R4, R7, R8. The detectors a
-  // contract drives are not built yet; they take their places in this list.
+  // The detectors a verified contract drives; without a contract they find nothing.
+  const driven = (detect: (dataset: Dataset, profile: Profile, contract: VerifiedContract) => Candidate[]) =>
+    contract ? detect(dataset, profile, contract) : [];
+  // Cell detectors in the precedence order of §5.6: C3, C1, C2, R3, R5, R6, R4, C5, C6, C4,
+  // R7, R8. C5 is not built; its place is between R4 and C6.
   const cellIssues = onePerCell([
+    driven(detectDependency),
+    driven(detectCanonicalValue),
+    driven(detectMissingToken),
     detectMissing(dataset, profile),
     detectNumberFormat(dataset, profile),
     detectDateFormat(dataset, profile),
     detectSpelling(dataset, profile),
+    driven(detectFlaggedValue),
+    driven(detectRange),
     detectShape(dataset, profile),
     detectOutliers(dataset, profile),
   ]);

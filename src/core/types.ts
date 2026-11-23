@@ -112,8 +112,37 @@ export interface Contract {
 }
 
 /**
+ * SPEC §6.1: the only description of the file that is sent to the model. Column statistics, a
+ * capped list of values per column and a small sample of rows; never the whole file.
+ */
+export interface ContractRequest {
+  rowCount: number;
+  columns: Array<{
+    name: string;
+    kind: ColumnKind;
+    rows: number;
+    missing: number;
+    distinct: number;
+    categorical: boolean;
+    freeText: boolean;
+    identifierLike: boolean;
+    numeric?: NumericSummary;
+    /** Up to 5 most common shapes. */
+    shapes: Array<{ shape: string; count: number }>;
+    /** Values of the non-missing cells, as written, most common first. `cut` marks a value shortened to 80 characters. */
+    values: Array<{ value: string; count: number; cut: boolean }>;
+    /** True when `values` lists every distinct value of the column. */
+    allValues: boolean;
+  }>;
+  /** Up to 20 rows. Each row holds its cells in the order of `columns`, cut at 80 characters. */
+  sampleRows: string[][];
+}
+
+/**
  * SPEC §6.3: the rules the data supports, each with the numbers behind it, and the rejected
- * rules with the reason. Provisional shape: `verifyContract` (session 2) owns it.
+ * rules with the reason. `variants` and `canonical` are spellings found in the file.
+ * `rejected[].rule` is one of: column, format, missingToken, canonicalGroup, suspiciousValue,
+ * range, dependency.
  */
 export interface VerifiedContract {
   /** `format` is already 'none' where the data did not support it. */

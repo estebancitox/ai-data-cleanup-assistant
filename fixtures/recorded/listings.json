@@ -1,0 +1,287 @@
+{
+  "format": 1,
+  "dataset": "listings",
+  "sha256": "8beeed79290f0e9b2b98749cb34be2d2c694073b76593f663f7c156755f876cd",
+  "recordedAt": "2026-11-23T21:05:11.735Z",
+  "model": "claude-sonnet-5-5",
+  "settings": {
+    "maxTokens": 16000,
+    "timeoutMs": 60000,
+    "thinking": "adaptive (model default)",
+    "effort": "medium",
+    "attempts": 2
+  },
+  "calls": [
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 10985,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 17465,
+      "outputTokens": 1451,
+      "stopReason": "end_turn",
+      "failure": null
+    }
+  ],
+  "contract": {
+    "columns": [
+      {
+        "name": "listing_id",
+        "meaning": "Unique listing number",
+        "role": "identifier",
+        "format": "none"
+      },
+      {
+        "name": "address",
+        "meaning": "Street address of the property",
+        "role": "free-text",
+        "format": "none"
+      },
+      {
+        "name": "city",
+        "meaning": "City where the property is located",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "state",
+        "meaning": "US state of the property",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "zip",
+        "meaning": "Postal ZIP code",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "property_type",
+        "meaning": "Type of property",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "bedrooms",
+        "meaning": "Number of bedrooms",
+        "role": "measure",
+        "format": "none"
+      },
+      {
+        "name": "bathrooms",
+        "meaning": "Number of bathrooms",
+        "role": "measure",
+        "format": "none"
+      },
+      {
+        "name": "sqft",
+        "meaning": "Living area in square feet",
+        "role": "measure",
+        "format": "none"
+      },
+      {
+        "name": "year_built",
+        "meaning": "Year the property was built",
+        "role": "measure",
+        "format": "none"
+      },
+      {
+        "name": "list_price",
+        "meaning": "Listing price in dollars",
+        "role": "measure",
+        "format": "none"
+      },
+      {
+        "name": "list_date",
+        "meaning": "Date the property was listed",
+        "role": "date",
+        "format": "none"
+      },
+      {
+        "name": "status",
+        "meaning": "Current listing status",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "agent_name",
+        "meaning": "Name of the listing agent",
+        "role": "category",
+        "format": "none"
+      },
+      {
+        "name": "agent_email",
+        "meaning": "Email address of the listing agent",
+        "role": "other",
+        "format": "email"
+      },
+      {
+        "name": "remarks",
+        "meaning": "Free-text notes about the listing",
+        "role": "free-text",
+        "format": "none"
+      }
+    ],
+    "missingTokens": [
+      {
+        "column": "agent_email",
+        "token": "unknown"
+      }
+    ],
+    "canonicalGroups": [
+      {
+        "column": "city",
+        "values": [
+          "Fort Collins",
+          "Ft. Collins",
+          "Fort  Collins"
+        ],
+        "reason": "Same city written with an abbreviation or extra space."
+      },
+      {
+        "column": "city",
+        "values": [
+          "Denver",
+          "Denvr"
+        ],
+        "reason": "Misspelling of Denver."
+      },
+      {
+        "column": "city",
+        "values": [
+          "Boulder",
+          "Bolder"
+        ],
+        "reason": "Misspelling of Boulder."
+      },
+      {
+        "column": "city",
+        "values": [
+          "Colorado Springs",
+          "Colo Springs"
+        ],
+        "reason": "Abbreviation of Colorado Springs."
+      },
+      {
+        "column": "state",
+        "values": [
+          "CO",
+          "Colorado",
+          "Colo."
+        ],
+        "reason": "Different spellings of the state Colorado."
+      },
+      {
+        "column": "property_type",
+        "values": [
+          "Single Family",
+          "SFR"
+        ],
+        "reason": "SFR is an abbreviation of single family."
+      },
+      {
+        "column": "property_type",
+        "values": [
+          "Condo",
+          "Condominium"
+        ],
+        "reason": "Condominium is the long form of Condo."
+      },
+      {
+        "column": "property_type",
+        "values": [
+          "Townhouse",
+          "Town Home"
+        ],
+        "reason": "Same property type written differently."
+      },
+      {
+        "column": "status",
+        "values": [
+          "Active",
+          "Actv"
+        ],
+        "reason": "Actv is an abbreviation of Active."
+      },
+      {
+        "column": "status",
+        "values": [
+          "Sold",
+          "Closed"
+        ],
+        "reason": "Closed and Sold describe the same status."
+      }
+    ],
+    "suspiciousValues": [
+      {
+        "column": "address",
+        "value": "123 Test St",
+        "reason": "Looks like test data."
+      },
+      {
+        "column": "agent_name",
+        "value": "Test Agent",
+        "reason": "Looks like test data."
+      },
+      {
+        "column": "agent_email",
+        "value": "test@test.com",
+        "reason": "Placeholder test email."
+      },
+      {
+        "column": "remarks",
+        "value": "TEST LISTING - DO NOT PUBLISH",
+        "reason": "Marks a test listing."
+      }
+    ],
+    "ranges": [
+      {
+        "column": "bedrooms",
+        "min": "0",
+        "max": "",
+        "reason": "A count of bedrooms cannot be negative."
+      },
+      {
+        "column": "bathrooms",
+        "min": "0",
+        "max": "",
+        "reason": "A count of bathrooms cannot be negative."
+      },
+      {
+        "column": "sqft",
+        "min": "0",
+        "max": "",
+        "reason": "Area cannot be negative."
+      },
+      {
+        "column": "year_built",
+        "min": "1600",
+        "max": "2026",
+        "reason": "A house cannot be built before settlement or in the future."
+      },
+      {
+        "column": "list_price",
+        "min": "0",
+        "max": "",
+        "reason": "A price cannot be negative."
+      }
+    ],
+    "dependencies": [
+      {
+        "determinant": "agent_name",
+        "dependent": "agent_email",
+        "reason": "Each agent has one email address."
+      },
+      {
+        "determinant": "zip",
+        "dependent": "city",
+        "reason": "A ZIP code belongs to one city."
+      },
+      {
+        "determinant": "listing_id",
+        "dependent": "address",
+        "reason": "Each listing has one address."
+      }
+    ]
+  }
+}

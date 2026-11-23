@@ -1,9 +1,13 @@
-// The evaluation of one dataset in rules mode: analysis, score, T1 and the printed report.
-// No files and no fixture names here, so that tests can run it on small inline data.
+// The evaluation of one dataset: analysis, score, thresholds and the printed tables. With a
+// proposed contract it is the AI evaluation (T2 and T3); without one it is the rules
+// evaluation (T1). No files and no fixture names here, so that tests can run it on small
+// inline data.
 
 import { analyze, NEAR_DUPLICATE_MIN_SIMILARITY } from '../src/core/analyze';
 import { scoreCandidatePairs, type ScoredPair } from '../src/core/analyze/similarity';
+import { verifyContract } from '../src/core/contract';
 import { parseCsv } from '../src/core/csv';
+import type { Contract, VerifiedContract } from '../src/core/types';
 import { score, type Recall, type Score, type Tally, type Truth } from './score';
 
 // T1 of SPEC §8.4.
@@ -14,6 +18,21 @@ const T1_FULL_RECALL: Array<{ label: string; kinds: string[] }> = [
   { label: 'number-format', kinds: ['number-format'] },
 ];
 const T1_NO_FALSE_POSITIVE = ['exact-duplicate', 'empty', 'whitespace', 'case-variant', 'number-format'];
+
+// T2 and T3 of SPEC §8.4.
+const T2_MIN_PRECISION = 0.9;
+const T2_MIN_RECALL = 0.8;
+const T3_MAX_FABRICATED_FIXES = 0;
+const T3_MIN_FIX_ACCURACY = 0.95;
+const T3_MAX_FIXES_ON_CLEAN_DATA = 2;
+
+export interface ThresholdCheck {
+  id: 'T2' | 'T3';
+  check: string;
+  measured: string;
+  threshold: string;
+  pass: boolean;
+}
 
 export interface T1Result {
   pass: boolean;
@@ -43,10 +62,35 @@ export interface Evaluation {
     nextBelow: ScoredPair | null;
     nextOtherBelow: ScoredPair | null;
   };
-  /** The tables, as printed. */
+  /** Only with a contract: what the model proposed and what the data supported. */
+  contract?: { proposed: Contract; verified: VerifiedContract };
+  /** Only with a contract: T2 and T3, as measured. */
+  thresholds?: ThresholdCheck[];
+  /** The tables, as printed. The same inputs give the same text. */
   report: string;
-  /** What the command exits with: 1 when T1 fails. */
+  /**
+   * What the command exits with. Rules: 1 when T1 fails. With a contract: 0, because a missed
+   * T2 or T3 is reported and classified (SPEC §8.5), not treated as a failed command.
+   */
   exitCode: number;
+}
+
+/** T2 and T3, each as measured next to its threshold. */
+export function checkThresholds(result: Score): ThresholdCheck[] {
+  const accuracy = result.fixAccuracy.scored === 0 ? null : result.fixAccuracy.correct / result.fixAccuracy.scored;
+  return [
+    { id: 'T2', check: 'overall precision', measured: fixed(result.precision), threshold: `${fixed(T2_MIN_PRECISION, 2)} or more`, pass: (result.precision ?? 0) >= T2_MIN_PRECISION },
+    { id: 'T2', check: 'overall recall', measured: fixed(result.recall), threshold: `${fixed(T2_MIN_RECALL, 2)} or more`, pass: (result.recall ?? 0) >= T2_MIN_RECALL },
+    { id: 'T3', check: 'fabricated fixes', measured: String(result.fabricatedFixes.length), threshold: String(T3_MAX_FABRICATED_FIXES), pass: result.fabricatedFixes.length <= T3_MAX_FABRICATED_FIXES },
+    {
+      id: 'T3',
+      check: 'fix accuracy',
+      measured: `${fixed(accuracy)} (${result.fixAccuracy.correct} of ${result.fixAccuracy.scored})`,
+      threshold: `${fixed(T3_MIN_FIX_ACCURACY, 2)} or more`,
+      pass: (accuracy ?? 0) >= T3_MIN_FIX_ACCURACY,
+    },
+    { id: 'T3', check: 'fixes on clean data', measured: String(result.fixesOnCleanData.length), threshold: `${T3_MAX_FIXES_ON_CLEAN_DATA} or fewer`, pass: result.fixesOnCleanData.length <= T3_MAX_FIXES_ON_CLEAN_DATA },
+  ];
 }
 
 /**
@@ -89,16 +133,51 @@ const tallyRows = (tallies: Record<string, Tally>) =>
       return [key, String(truePositives), String(falsePositives), String(extra), fixed(scored === 0 ? null : truePositives / scored, 2)];
     });
 
-/** Runs the rules on the CSV text and scores the result against the truth. */
-export function evaluate(csvText: string, truth: Truth, fileName: string): Evaluation {
+/** The tables that describe a contract: what was proposed, what the data supported, what was rejected. */
+function contractTables(proposed: Contract, verified: VerifiedContract): string[] {
+  const rejected = (rule: string) => verified.rejected.filter((entry) => entry.rule === rule).length;
+  const formats = (columns: Contract['columns']) => columns.filter((column) => column.format !== 'none').length;
+  const counts: Array<[string, number, number, number]> = [
+    ['columns', proposed.columns.length, verified.columns.length, rejected('column')],
+    ['column formats', formats(proposed.columns), formats(verified.columns), rejected('format')],
+    ['missingTokens', proposed.missingTokens.length, verified.missingTokens.length, rejected('missingToken')],
+    ['canonicalGroups', proposed.canonicalGroups.length, verified.canonicalGroups.length, rejected('canonicalGroup')],
+    ['suspiciousValues', proposed.suspiciousValues.length, verified.suspiciousValues.length, rejected('suspiciousValue')],
+    ['ranges', proposed.ranges.length, verified.ranges.length, rejected('range')],
+    ['dependencies', proposed.dependencies.length, verified.dependencies.length, rejected('dependency')],
+  ];
+  const accepted: string[][] = [
+    ...verified.columns.filter((column) => column.format !== 'none').map((column) => ['format', `${column.name}: ${column.format}`, '']),
+    ...verified.missingTokens.map((entry) => ['missingToken', `${entry.column}: "${entry.token}"`, entry.support]),
+    ...verified.canonicalGroups.map((entry) => ['canonicalGroup', `${entry.column}: ${entry.variants.map((value) => `"${value}"`).join(', ')} -> "${entry.canonical}"`, entry.support]),
+    ...verified.suspiciousValues.map((entry) => ['suspiciousValue', `${entry.column}: "${entry.value}"`, entry.support]),
+    ...verified.ranges.map((entry) => ['range', `${entry.column}: ${entry.min || 'no lower bound'} to ${entry.max || 'no upper bound'}`, entry.support]),
+    ...verified.dependencies.map((entry) => ['dependency', `${entry.determinant} -> ${entry.dependent}`, entry.support]),
+  ];
+  const none = [['none', '', '']];
+  return [
+    table('Contract (SPEC 6.3)', ['rules', 'proposed', 'verified', 'rejected'], counts.map((row) => row.map(String))),
+    table('Verified rules', ['rule', 'what', 'support'], accepted.length === 0 ? none : accepted),
+    table('Rejected rules', ['rule', 'what', 'reason'], verified.rejected.length === 0 ? none : verified.rejected.map((entry) => [entry.rule, entry.summary, entry.reason])),
+  ];
+}
+
+/**
+ * Analyses the CSV text and scores the result against the truth. Without a contract it runs
+ * the rules alone. With the contract a model proposed, it verifies it against the data first
+ * and runs the detectors the verified rules drive as well.
+ */
+export function evaluate(csvText: string, truth: Truth, fileName: string, proposed?: Contract): Evaluation {
   const parsed = parseCsv(csvText, fileName);
   if (!parsed.ok) throw new Error(`${fileName} could not be parsed: ${parsed.error}`);
 
   const started = performance.now();
-  const analysis = analyze(parsed.dataset);
+  const verified = proposed ? verifyContract(proposed, parsed.dataset) : undefined;
+  const analysis = analyze(parsed.dataset, verified);
   const analysisMs = Math.round(performance.now() - started);
   const result = score(analysis.issues, truth);
   const t1 = checkT1(result);
+  const thresholds = proposed ? checkThresholds(result) : undefined;
 
   // How R2 scores the planted pairs and the trap pairs (SPEC §8.4).
   const threshold = NEAR_DUPLICATE_MIN_SIMILARITY;
@@ -132,7 +211,6 @@ export function evaluate(csvText: string, truth: Truth, fileName: string): Evalu
   const at = fixed(threshold, 2);
 
   const out: string[] = [];
-  out.push(`Rule analysis took ${analysisMs} ms.`);
   out.push(
     table('Overall', ['issues', 'TP', 'FP', 'extra', 'FN', 'precision', 'recall'], [[
       String(result.issues), String(result.truePositives), String(result.falsePositives), String(result.extra),
@@ -165,17 +243,43 @@ export function evaluate(csvText: string, truth: Truth, fileName: string): Evalu
       result.trapsHit.length === 0 ? [['none', '', '', '']] : result.trapsHit.map((hit) => [hit.trap, hit.kind, hit.detector, hit.issueId]),
     ),
   );
-  out.push(
-    table('T1 (SPEC 8.4)', ['check', 'measured', 'result'], [
-      ...t1.recall.map((check) => [`recall ${check.label}`, `${check.located} of ${check.total}`, check.pass ? 'PASS' : 'FAIL']),
-      ...t1.falsePositives.map((check) => [
-        `false positives ${check.detector}`,
-        check.falsePositives === null ? 'no issue from this detector' : String(check.falsePositives),
-        check.pass ? 'PASS' : 'FAIL',
+  if (proposed && verified && thresholds) {
+    // The AI evaluation: the contract, every false positive and missed error, then T2 and T3.
+    const sourceOf = new Map(analysis.issues.map((issue) => [issue.id, issue.source]));
+    const missed = new Set(result.missed);
+    out.push(...contractTables(proposed, verified));
+    out.push(
+      table('False positives', ['issue', 'detector', 'source', 'rows', 'column'],
+        result.falsePositiveIssues.length === 0
+          ? [['none', '', '', '', '']]
+          : result.falsePositiveIssues.map((issue) => [issue.issueId, issue.detector, sourceOf.get(issue.issueId) ?? '', issue.rowIds.join('+'), issue.column ?? '']),
+      ),
+    );
+    out.push(
+      table('Missed errors', ['error', 'type', 'kind', 'rows', 'columns'],
+        missed.size === 0
+          ? [['none', '', '', '', '']]
+          : truth.errors.filter((error) => missed.has(error.id)).map((error) => [error.id, error.type, error.kind, error.rows.join('+'), error.columns.join(', ')]),
+      ),
+    );
+    out.push(
+      table('T2 and T3 (SPEC 8.4)', ['threshold', 'check', 'measured', 'required', 'result'],
+        thresholds.map((check) => [check.id, check.check, check.measured, check.threshold, check.pass ? 'PASS' : 'FAIL']),
+      ),
+    );
+  } else {
+    out.push(
+      table('T1 (SPEC 8.4)', ['check', 'measured', 'result'], [
+        ...t1.recall.map((check) => [`recall ${check.label}`, `${check.located} of ${check.total}`, check.pass ? 'PASS' : 'FAIL']),
+        ...t1.falsePositives.map((check) => [
+          `false positives ${check.detector}`,
+          check.falsePositives === null ? 'no issue from this detector' : String(check.falsePositives),
+          check.pass ? 'PASS' : 'FAIL',
+        ]),
+        ['T1', '', t1.pass ? 'PASS' : 'FAIL'],
       ]),
-      ['T1', '', t1.pass ? 'PASS' : 'FAIL'],
-    ]),
-  );
+    );
+  }
   out.push(
     table('R2 near-duplicate pairs (SPEC 8.4)', ['measure', 'value'], [
       ['planted pairs reported', `${planted.filter((pair) => pair.reported).length} of ${planted.length}`],
@@ -196,7 +300,8 @@ export function evaluate(csvText: string, truth: Truth, fileName: string): Evalu
     score: result,
     t1,
     r2: { threshold, planted, trapPairs, otherAbove, nextBelow, nextOtherBelow },
+    ...(proposed && verified && thresholds ? { contract: { proposed, verified }, thresholds } : {}),
     report: out.join('\n'),
-    exitCode: t1.pass ? 0 : 1,
+    exitCode: proposed ? 0 : t1.pass ? 0 : 1,
   };
 }

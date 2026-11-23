@@ -234,6 +234,14 @@ How it was scaffolded:
   pins) and that it blocked the install scripts of esbuild and fsevents. Tests and the eval
   run without them.
 
+Session 2 (2026-11-23): `@anthropic-ai/sdk` 1.13.0 was added (`npm ls --depth=0`). It is
+the only new dependency. Its Zod helper imports `zod/v4` and its peer range is
+`zod ^3.25.0 || ^4.0.0`; the installed zod is 4.6.7. Checked against the documentation on the
+same day: structured outputs are stable and go in `output_config.format`; `zodOutputFormat`
+(`@anthropic-ai/sdk/helpers/zod`), `client.messages.parse()` and `parsed_output` exist as
+documented; `claude-sonnet-5-5` thinks adaptively by default, rejects `thinking: disabled`,
+`budget_tokens` and the sampling parameters, and defaults to effort `high`.
+
 ## 10. Findings
 
 Problems found in the SPEC or in the fixtures during the build, appended here. Each entry:
@@ -424,3 +432,94 @@ issue counted as `extra` leaves the scoring before the fix checks, so a value it
 an error with no known fix is not counted. The development run has no `extra` issue.
 
 Resolution: logged. No code change.
+
+### Session 2: the AI data contract (2026-11-23, from 15:16 -05)
+
+Each entry: what was found, where, and what the code does. F21 to F26 were raised at gate 1
+and decided by the owner there; SPEC.md is updated between sessions.
+
+**F21. A recording had no way to reach the page (SPEC §6.6 against §4.3).** Recorded mode is
+keyed by the file's SHA-256 and the UI shows the model and the date, but the contract route
+takes a `ContractRequest`, which carries no hash, and `src/ai` is server only.
+
+Resolution: approved at gate 1. New route `GET /api/ai/recording?sha256=<hex>`: 200 with
+`{ contract, model, recordedAt }`, 404 when nothing matches, 400 unless `sha256` is 64
+hexadecimal characters; outside the rate limit, because it calls no model. When S1 exists the
+same route also returns the recorded verdicts. To do: add the route to SPEC §4.3. For the
+integration session: the route reads `fixtures/recorded/` from the file system at request
+time, so on a serverless deployment the recordings must be part of the bundle (for Next.js,
+through the output file tracing includes), or the route answers 404 for the bundled sample.
+
+**F22. A missing token the rules already handle (SPEC §6.3, §5.6).** C2 runs before R3 and
+both use the detector id `placeholder`, so a proposed token such as `n/a` would turn R3's
+high-confidence rule issues into medium-confidence AI issues with the same id.
+
+Resolution: approved at gate 1. "Observed" means held by a cell that is not missing. A token
+the built-in rules already treat as missing in that column is rejected as "already handled by
+a built-in rule"; the same reading makes such a value "not in the data" for
+`suspiciousValues` and `canonicalGroups`. No cap on the share of a token: if a live run trips
+on it, that is a rule-definition finding.
+
+**F23. What "observed" and "at least 2 remain" count in a canonical group (SPEC §6.3).**
+
+Resolution: approved at gate 1. Values are compared by comparison key throughout §6.3. A
+group needs two different keys, so a group of pure case or spacing variants is rejected and
+stays with R4. C1 only claims cells whose key differs from the canonical's. A group that
+shares a value with an accepted group of the same column is rejected. The canonical value and
+the variants are stored with the spelling the file uses most often.
+
+**F24. Which rows count for a dependency (SPEC §6.3, §5.5).**
+
+Resolution: approved at gate 1. Verification and C3 use one comparison
+(`dependencyGroups` in `src/core/contract/rules.ts`): rows where A and B are both present; a
+verified missing token counts as missing; B is compared by key after the verified canonical
+groups; group sizes are counted on those rows. The fix of C3 is the majority value in the
+spelling the column uses most often.
+
+**F25. The request does not always fit (SPEC §6.1).** "Cut at 80 characters" is written for
+the value lists only, and at the floor of 20 a column still sends up to 30 values, so a wide
+file of long values stays above 200 KB and above the route's 256 KB.
+
+Resolution: approved at gate 1. Sample-row cells are cut at 80 characters too. A request
+still over 200 KB at the floor is returned as it is and the route answers 413. No new
+constant. Not measured on a real wide file: the unit test covers 30 columns of 150 long values.
+
+**F26. Smaller readings applied (approved at gate 1).**
+- `format` validators, which the SPEC does not define: an email is one `@`, no spaces and a
+  dot in the domain; a url starts with `http://` or `https://` and has a host. A format the
+  data does not support is set to `none` and also listed among the rejected rules.
+- Date ranges: a bound must be an unambiguous date in an R6 layout. A cell that cannot be
+  read for certain (not a date, a date that does not exist, a slash date whose two first
+  numbers could each be the month) is neither inside nor outside, and C4 does not flag it.
+- `eval:recorded` and `eval:live` exit with 0 when the run completes, whatever T2 and T3 say:
+  §8.3 defines a non-zero exit only for T1, and §8.5 handles a miss by classification. They
+  exit with 1 when they cannot run (no recording, no key, the model call failed twice).
+- `eval:heldout` writes its run file with the proposed and verified contract inside, and
+  nothing under `fixtures/recorded/` (§6.6: only `eval:live` writes recordings).
+- `src/core/contract` exports `dependencyGroups`, `observedValues` and `rangePosition` to
+  `src/core/analyze`, beyond the three names of §4.2, so that verification and the C
+  detectors share one definition (the same kind of finding as F3).
+- The contract route counts a request against the rate limit only after it passed the size
+  and shape checks; a server with no key answers 502 `ai_unavailable`.
+
+**F27. The check that a calendar date exists is written twice.** Once in R6
+(`src/core/analyze/detectors/date-format.ts`) and once in `src/core/contract/rules.ts`,
+because `src/core/profile` was frozen in this session and `contract` may not import from
+`analyze`.
+
+Resolution: logged. To move into `src/core/profile` between sessions.
+
+**F28. T3 cannot pass on the contract path alone (SPEC §8.4).** The rules run has 3 fixes on
+clean data, the three trap pairs R2 reports with a `delete-row` fix, and T3 allows 2. Nothing
+in §6.1 to §6.3 removes a rule issue; only an S1 dismissal does.
+
+Resolution: the owner keeps the threshold. S1 is pre-approved if the gate 3 report is posted
+before 16:45 with a completed live run.
+
+**F29. `GET /api/ai/status` and `GET /api/ai/recording` must run on every request.** Both
+routes export `dynamic = 'force-dynamic'`. Source: the Next.js 16.4.6 documentation shipped in
+`node_modules/next/dist/docs/01-app/02-guides/caching-without-cache-components.md`, lines 82
+to 97 ("Force dynamic rendering, which will result in routes being rendered for each user at
+request time"); `next.config.ts` does not enable Cache Components, so that guide applies. Not
+verified with a build: `npm run build` is excluded from this session. The route table of the
+owner's build shows it (`ƒ` marks a route rendered on demand).

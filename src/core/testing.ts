@@ -1,7 +1,7 @@
 // Helpers for the tests of the core. The data is a made-up bicycle parts inventory.
 
 import { parseCsv } from './csv';
-import type { ChangeLogMeta, Dataset } from './types';
+import type { ChangeLogMeta, Contract, Dataset } from './types';
 
 /** Builds a Dataset from a header and rows of cells; row ids are 1, 2, 3... */
 export function table(columns: string[], data: string[][], fileName = 'test.csv'): Dataset {
@@ -73,4 +73,62 @@ export function inventory(): Dataset {
     withChange(18, 0, 'P218', 'P218'), // 37: id with another shape
   );
   return table(columns, data, 'inventory.csv');
+}
+
+const SPECIES: Array<[string, string]> = [
+  ['Acer palmatum', 'Acer'],
+  ['Quercus robur', 'Quercus'],
+  ['Betula pendula', 'Betula'],
+];
+const SIZES = ['Small', 'Medium', 'Large'];
+const LIGHT = ['sun', 'shade', 'part shade'];
+
+/**
+ * The stock list of a made-up plant nursery, for the tests that need a contract: 30 clean
+ * rows, where the species decides the genus, followed by rows with one planted problem each.
+ */
+export function nursery(): Dataset {
+  const columns = ['plant_id', 'species', 'genus', 'size', 'light', 'height_cm', 'supplier_email', 'notes'];
+  const clean = (i: number): string[] => [
+    `N-${100 + i}`,
+    SPECIES[i % 3][0],
+    SPECIES[i % 3][1],
+    SIZES[Math.floor(i / 3) % 3],
+    LIGHT[(i * 2 + Math.floor(i / 3)) % 3],
+    String(50 + i * 5),
+    `orders@${i % 2 ? 'rootstock' : 'greenleaf'}.example`,
+    `Potted in week ${i} and kept in tunnel ${i * 3}; watered twice a week since then.`,
+  ];
+  const data = Array.from({ length: 30 }, (_, index) => clean(index));
+  const withChange = (i: number, position: number, value: string): string[] => {
+    const row = clean(i);
+    row[position] = value;
+    return row;
+  };
+  data.push(
+    withChange(30, 2, 'Quercus'), // 31: an Acer with the genus of another species
+    withChange(31, 2, ''), // 32: genus left empty
+    withChange(32, 3, 'Lrg'), // 33: abbreviation of a size
+    withChange(33, 3, 'LARGE'), // 34: case variant of a size
+    withChange(34, 4, 'tbc'), // 35: a word that stands for "no value"
+    withChange(35, 5, '4000'), // 36: a height no plant here has
+    withChange(36, 7, 'TEST ROW do not sell'), // 37: test data
+    withChange(37, 2, 'n/a'), // 38: genus as a placeholder
+  );
+  return table(columns, data, 'nursery.csv');
+}
+
+/** A contract a model could propose for `nursery()`. Every rule of it is supported by the data. */
+export function nurseryContract(): Contract {
+  return {
+    columns: [
+      { name: 'supplier_email', meaning: 'supplier contact', role: 'other', format: 'email' },
+      { name: 'height_cm', meaning: 'plant height', role: 'measure', format: 'none' },
+    ],
+    missingTokens: [{ column: 'light', token: 'tbc' }],
+    canonicalGroups: [{ column: 'size', values: ['Large', 'Lrg'], reason: 'An abbreviation of the same size.' }],
+    suspiciousValues: [{ column: 'notes', value: 'TEST ROW do not sell', reason: 'Looks like test data.' }],
+    ranges: [{ column: 'height_cm', min: '5', max: '1000', reason: 'Heights of potted plants in centimetres.' }],
+    dependencies: [{ determinant: 'species', dependent: 'genus', reason: 'A species belongs to one genus.' }],
+  };
 }
