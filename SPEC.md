@@ -1,6 +1,14 @@
 # SPEC: AI Data Cleanup Assistant
 
-Version 1.4 · 2026-11-23 · Status: contract for the one-day build
+Version 1.5 · 2026-11-23 · Status: contract for the one-day build
+
+Changes in 1.5. The interface was restyled after the freeze, presentation only (`DECISIONS.md`
+§10, F79). Two sentences that the new interface made false:
+
+- §7.3: the summary is one row per issue type with a bar of its decisions, not one card per
+  type.
+- §7.3: a duplicate shows its two rows stacked and cut down to the columns that differ; the
+  other columns are behind "Show whole rows".
 
 Changes in 1.4. Fixes from the independent review of session 4 and from the owner's hand check
 of live mode (`DECISIONS.md` §10, session 5):
@@ -697,7 +705,8 @@ rejected), adjudication. The AI mode is visible at all times.
 
 ### 7.3 Review
 
-- Summary: one card per issue type with pending, accepted and rejected counts.
+- Summary: one row per issue type with its total, and a bar of its pending, accepted and
+  rejected issues with the three counts in words.
 - Filters: type, status, confidence, source.
 - Groups (from `groupIssues`), collapsed by default: title in plain words, number of issues,
   source (Rule or AI), confidence, reason, and the bulk buttons: "Accept all" and "Reject all"
@@ -708,8 +717,9 @@ rejected), adjudication. The AI mode is visible at all times.
 - S2, "Accept all high-confidence fixes": one button above the groups. It accepts the pending
   issues the filters show that propose a fix with high confidence, and never a flag.
 - Inside a group, per issue: row id, the cell before and after with the difference visible,
-  reason and evidence, accept and reject. Duplicates show both rows side by side with the
-  differing cells marked. Flag-only issues show the cell and the reason, with "Confirm"
+  reason and evidence, accept and reject. Duplicates show both rows stacked, cut down to the
+  columns that differ, with the differing part of each value marked; the other columns are
+  behind "Show whole rows". Flag-only issues show the cell and the reason, with "Confirm"
   (stored as accepted; it changes no cell) and "Dismiss" (stored as rejected).
 - An issue on a cell of a row that an accepted duplicate fix removes says so, and names the
   row that is kept (§5.6).

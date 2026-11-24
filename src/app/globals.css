@@ -1,129 +1,337 @@
 @import "tailwindcss";
 
-/* Light theme only. Neutral greys and one accent, used for actions and for the changed part
-   of a value. Contrast on white: ink 17.9, muted 7.8, accent 6.0 (WCAG AA needs 4.5). */
+/* A marked-up sheet. Colour answers one question: what happens to this cell in the download?
+   Yellow waits for a decision. Green is what the cleaned file will hold. A strike goes away.
+   No fill stays as it is. Cobalt is the second pen: everything the model said. Each state also
+   has its word and an edge or a line, so a fill never carries a state alone.
+
+   Contrast, measured (WCAG AA: 4.5 for text, 3 for the edge of a control and the focus ring):
+   ink on sheet 16.19, canvas 14.79, head 13.86, pending 12.10, accepted fill 13.89;
+   muted on sheet 7.00, canvas 6.39, head 5.99, pending 5.23;
+   accepted on its fill 4.64, on sheet 5.41; removal on sheet 6.57, canvas 6.00, pending 4.91;
+   model on sheet 6.57, canvas 6.00, tint 5.59; white on model 6.57, on ink 16.19;
+   edge on sheet 4.30, canvas 3.92, pending 3.21, accepted fill 3.69. */
 :root {
-  --ink: #171717;
-  --muted: #525252;
-  --line: #d4d4d4;
-  --hairline: #e5e5e5;
-  --surface: #f5f5f5;
-  --paper: #ffffff;
-  --accent: #b03d00;
+  /* Surfaces. */
+  --canvas: #f2f5f7;
+  --sheet: #ffffff;
+  --head: #e9eef2;
+  --grid: #d5dce2;
+  /* Text, primary actions and the edge of a control. */
+  --ink: #0f2233;
+  --muted: #4a5b6b;
+  --edge: #6b7c8c;
+  /* What happens to the cell in the download. */
+  --pending: #ffdd4a;
+  --accepted: #18794e;
+  --accepted-fill: #ddf3e4;
+  --removal: #b4231a;
+  /* Everything the model said. */
+  --model: #2d4be0;
+  --model-tint: #e8ecfd;
 }
 
 @theme inline {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Two faces. The interface face for every label and count; the mono face only for what
+     comes from the file: cell values, column names, the file name. */
+  --font-sans: var(--font-interface), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-file), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-canvas: var(--canvas);
+  --color-sheet: var(--sheet);
+  --color-head: var(--head);
+  --color-grid: var(--grid);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
-  --color-line: var(--line);
-  --color-hairline: var(--hairline);
-  --color-surface: var(--surface);
-  --color-paper: var(--paper);
-  --color-accent: var(--accent);
+  --color-edge: var(--edge);
+  --color-pending: var(--pending);
+  --color-accepted: var(--accepted);
+  --color-accepted-fill: var(--accepted-fill);
+  --color-removal: var(--removal);
+  --color-model: var(--model);
+  --color-model-tint: var(--model-tint);
+
+  /* Type: a note, the text of the page, the title of a group, the title of a screen. */
+  --text-note: 0.8125rem;
+  --text-note--line-height: 1.25rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.3125rem;
+  --text-title: 1rem;
+  --text-title--line-height: 1.375rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.875rem;
+
+  /* Shape: data is square, controls are round. */
+  --radius-control: 4px;
+  /* Space: the column of row numbers that every strip shares, and the page. */
+  --spacing-gutter: 3.5rem;
+  --container-page: 70rem;
 }
 
 body {
-  background: var(--paper);
+  background: var(--canvas);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Focus is always visible, on every control. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  background: var(--paper);
-  color: var(--ink);
-  padding: 0.3125rem 0.75rem;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.25rem;
-  white-space: nowrap;
-  cursor: pointer;
+/* Motion only answers an action, and never when the user asked for none. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
-.btn:hover:not(:disabled) {
-  border-color: var(--ink);
-}
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-control);
+    background: var(--sheet);
+    color: var(--ink);
+    padding: 0.3125rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 120ms,
+      border-color 120ms,
+      color 120ms;
+  }
 
-.btn:disabled {
-  color: #737373;
-  background: var(--surface);
-  cursor: not-allowed;
-}
+  .btn:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: var(--head);
+  }
 
-/* The main action of a screen. */
-.btn-primary {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #ffffff;
-}
+  .btn:disabled {
+    border-color: var(--grid);
+    background: var(--canvas);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
 
-.btn-primary:hover:not(:disabled) {
-  border-color: var(--ink);
-  background: var(--ink);
-}
+  /* The main action of a screen. */
+  .btn-primary,
+  .btn-primary:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #ffffff;
+  }
 
-/* A decision that is in force. The word next to the buttons says the same in text. */
-.btn[aria-pressed="true"] {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: #ffffff;
-}
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--ink) 86%, white);
+  }
 
-.field {
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  background: var(--paper);
-  color: var(--ink);
-  padding: 0.3125rem 0.5rem;
-  font-size: 13px;
-  line-height: 1.25rem;
-}
+  /* A decision that is in force. The word in the decision cell says the same in text. */
+  .btn[aria-pressed="true"],
+  .btn[aria-pressed="true"]:hover {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: #ffffff;
+  }
 
-.field:hover {
-  border-color: var(--ink);
-}
+  /* An action that asks the model. */
+  .btn-model,
+  .btn-model:hover:not(:disabled) {
+    border-color: var(--model);
+    color: var(--model);
+  }
 
-/* A cell value: IBM Plex Mono, spaces and line breaks kept as they are in the file. */
-.value {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
+  .btn-model:hover:not(:disabled) {
+    background: var(--model-tint);
+  }
 
-/* The changed part of a value: the accent and a line, never the colour alone. */
-.changed-old {
-  color: var(--accent);
-  text-decoration: line-through;
-}
+  .field {
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-control);
+    background: var(--sheet);
+    color: var(--ink);
+    padding: 0.3125rem 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+  }
 
-.changed-new {
-  color: var(--accent);
-  font-weight: 500;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
+  .field:hover {
+    border-color: var(--ink);
+  }
 
-/* Changed whitespace: each space is a dot inside a box. */
-.changed-space {
-  margin: 0 1px;
-  border: 1px solid var(--accent);
-  border-radius: 2px;
-  padding: 0 1px;
-  color: var(--accent);
+  /* A tag: a word about a group or a file. Ink only; the model's tag is the one in cobalt. */
+  .tag {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    border: 1px solid var(--edge);
+    border-radius: var(--radius-control);
+    background: var(--sheet);
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    white-space: nowrap;
+  }
+
+  .tag-model {
+    border-color: var(--model);
+    background: var(--model-tint);
+    color: var(--model);
+  }
+
+  /* What the model said, as a note in the margin. */
+  .note-model {
+    border-left: 3px solid var(--model);
+    padding-left: 0.625rem;
+    color: var(--model);
+  }
+
+  /* A slice of the table: square cells that share their gridlines. */
+  .sheet {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--sheet);
+    text-align: left;
+  }
+
+  .sheet th,
+  .sheet td {
+    border: 1px solid var(--grid);
+    padding: 0.375rem 0.625rem;
+    vertical-align: top;
+    font-weight: 400;
+  }
+
+  /* Column names and row numbers, as a sheet shows them. */
+  .sheet thead th,
+  .sheet thead td,
+  .sheet .gutter {
+    background: var(--head);
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .sheet .gutter {
+    width: var(--spacing-gutter);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* A sheet wider than the page scrolls sideways inside its frame. */
+  .sheet-wide {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .sheet-wide td {
+    max-width: 18rem;
+  }
+
+  /* Frozen panes: in a sheet that scrolls sideways, the row number and the decision stay. */
+  .sheet-wide .gutter {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    box-shadow: inset -1px 0 0 var(--grid);
+  }
+
+  .sheet-wide .frozen-end {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--sheet);
+    box-shadow: inset 1px 0 0 var(--grid);
+  }
+
+  .sheet-wide thead .frozen-end {
+    background: var(--head);
+  }
+
+  /* Waiting for a decision. */
+  .cell-pending {
+    background: var(--pending);
+    outline: 2px dashed var(--ink);
+    outline-offset: -2px;
+  }
+
+  /* Accepted: this is what the cleaned file will hold. */
+  .cell-accepted {
+    background: var(--accepted-fill);
+    outline: 2px solid var(--accepted);
+    outline-offset: -2px;
+  }
+
+  /* The value or the row that goes away. */
+  .cell-gone {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--removal);
+    text-decoration-thickness: 2px;
+  }
+
+  /* A proposal the user rejected: it never reaches the file, and the file loses nothing. */
+  .cell-dropped {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  /* The cell an issue is about, among the other cells of its row. */
+  .cell-marked {
+    outline: 2px solid var(--ink);
+    outline-offset: -2px;
+  }
+
+  /* A cell value: the mono face, spaces and line breaks kept as they are in the file. */
+  .value,
+  .file {
+    font-family: var(--font-mono);
+  }
+
+  .value {
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  /* The part of a value that a fix takes out, and the part it puts in. */
+  .changed-old {
+    color: var(--removal);
+    text-decoration: line-through;
+  }
+
+  .changed-new {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Changed whitespace: each space is a dot inside a box. */
+  .changed-space {
+    margin: 0 1px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  /* The one element that floats. */
+  .bar {
+    border-top: 1px solid var(--edge);
+    background: var(--sheet);
+    box-shadow: 0 -6px 18px rgb(15 34 51 / 0.14);
+  }
 }

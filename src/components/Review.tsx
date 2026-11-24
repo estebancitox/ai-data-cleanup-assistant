@@ -143,7 +143,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
 
   return (
     <>
-      <main className="mx-auto w-full max-w-[1120px] flex-1 px-6 pb-16">
+      <main className="mx-auto w-full max-w-page flex-1 px-6 pb-16">
         <FileHeader
           fileName={dataset.fileName}
           rows={dataset.rows.length}
@@ -169,10 +169,10 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
         <section aria-labelledby="issues-title" className="mt-10">
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-4">
             <div>
-              <h2 id="issues-title" className="text-[20px] font-semibold tracking-tight">
+              <h2 id="issues-title" className="text-display font-semibold">
                 Issues
               </h2>
-              <p className="text-[13px] text-muted">
+              <p className="text-note text-muted">
                 {shownIssues === issues.length
                   ? `${plural(issues.length, "issue")} in ${plural(groups.length, "group")}`
                   : `${shownIssues} of ${plural(issues.length, "issue")} match the filters`}
@@ -181,8 +181,8 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
             <Filters filters={filters} onChange={setFilters} />
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line py-3">
-            <p className="max-w-[70ch] text-[13px] text-muted">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border border-grid bg-sheet px-4 py-3">
+            <p className="max-w-[70ch] text-note text-muted">
               {sureFixes.length === 0
                 ? "No pending fix with high confidence is on screen."
                 : "Accepts every pending fix with high confidence that is on screen. Flags, and fixes with medium or low confidence, stay for you to decide."}
@@ -193,7 +193,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
               disabled={sureFixes.length === 0}
               onClick={() => onDecideMany(sureFixes.map((issue) => issue.id), "accepted")}
             >
-              Accept all high-confidence fixes <span className="font-mono">({sureFixes.length})</span>
+              Accept all high-confidence fixes <span>({sureFixes.length})</span>
             </button>
           </div>
 
@@ -206,13 +206,14 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
               columns={dataset.columns}
               rowsById={rowsById}
               removedRows={removed}
+              dependencies={analysis.contract?.dependencies}
               onDecide={onDecide}
               onDecideMany={onDecideMany}
             />
           ))}
 
           {visible.length === 0 && (
-            <p className="border-t border-line py-8 text-muted">
+            <p className="mt-3 border border-grid bg-sheet px-4 py-8 text-muted">
               {issues.length === 0 ? "No issues were found in this file." : "No issue matches these filters."}
             </p>
           )}
@@ -230,6 +231,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
 
       <ReviewBar
         counts={totals}
+        removedRows={removed.size}
         doubted={doubted.length > 0 ? { count: doubted.length, groups: doubtedGroups } : undefined}
         lastBulk={lastBulk ?? undefined}
         onUndo={undoLastBulk}

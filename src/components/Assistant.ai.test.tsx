@@ -23,6 +23,7 @@ import { describeGroup, issueLabel } from '../lib/describe';
 import type { LoadedFile } from '../lib/load';
 import { FORMATS_KIND } from './AiRules';
 import { Assistant } from './Assistant';
+import { IssueRow } from './IssueRow';
 
 // The real seam, with a record of what it yielded: the very snapshots the page was given.
 const seam = vi.hoisted(() => ({ snapshots: [] as AnalysisSnapshot[] }));
@@ -142,7 +143,9 @@ it('sample without a key shows the recorded analysis', async () => {
   await openSample();
 
   // The mode, with the model and the date of the recording.
-  expect(await screen.findByText(`Recorded AI analysis · ${RECORDING.model} · recorded 2026-11-23 21:26 UTC`)).toBeTruthy();
+  expect((await screen.findByText('Recorded AI analysis')).parentElement?.textContent).toBe(
+    `Recorded AI analysis ${RECORDING.model} recorded 2026-11-23 21:26 UTC`,
+  );
 
   // Exactly the issues of analyze(dataset, verifyContract(contract, dataset)), with the
   // recorded verdicts attached to them (SPEC §6.6).
@@ -293,7 +296,7 @@ it('run live replaces the recorded analysis when the server is live', async () =
   expect(aiPosts()).toEqual([]);
   await user.click(button('Run live'));
 
-  expect(await screen.findByText('AI live · a-test-model')).toBeTruthy();
+  expect((await screen.findByText('AI live')).parentElement?.textContent).toBe('AI live a-test-model');
   const cases = selectCases(dataset, withContract).length;
   await screen.findByText(new RegExp(`${cases} unsure`));
   expect(lastSnapshot().ai).toEqual({ mode: 'live', model: 'a-test-model' });
@@ -571,15 +574,16 @@ it('a failed Run live leaves the recorded mode in the header', async () => {
   // The contract route answers 502.
   serve({ recording: true, live: true });
   const user = await openSample();
-  const recordedLine = `Recorded AI analysis · ${RECORDING.model} · recorded 2026-11-23 21:26 UTC`;
-  await screen.findByText(recordedLine);
+  // The mode line: the mode as a tag, then the model and the date, in one paragraph.
+  const recordedLine = `Recorded AI analysis ${RECORDING.model} recorded 2026-11-23 21:26 UTC`;
+  expect((await screen.findByText('Recorded AI analysis')).parentElement?.textContent).toBe(recordedLine);
   await user.click(button('Run live'));
 
   expect((await screen.findByRole('alert')).textContent).toBe(
     'The AI service did not return a usable answer. The recorded analysis stays on screen as it is.',
   );
   // The analysis on screen is the recorded one, and the header still says so.
-  expect(screen.getByText(recordedLine)).toBeTruthy();
+  expect(screen.getByText('Recorded AI analysis').parentElement?.textContent).toBe(recordedLine);
   expect(screen.queryByText(/^AI live/)).toBeNull();
   expect(lastSnapshot().analysis).toEqual(recorded);
   expect(lastSnapshot().ai).toEqual({ mode: 'recorded', model: RECORDING.model });
@@ -604,4 +608,67 @@ it('a rejected dependency is worded like a verified one', async () => {
   expect(screen.getByText('species decides genus')).toBeTruthy();
   expect(screen.getByText('species decides no_such_column')).toBeTruthy();
   expect(screen.queryByText('species -> no_such_column')).toBeNull();
+});
+
+it('the column that decides a cell is shown only on issues of the dependency detector', async () => {
+  serve({ recording: true, live: false });
+  const user = await openSample();
+  await screen.findByText(/^Recorded AI analysis/);
+
+  // A group of the dependency detector whose column exactly one verified rule decides, and a
+  // group of another detector on the same column.
+  const verified = verifyContract(RECORDING.contract, dataset);
+  const groups = groupIssues(shownIn(recorded));
+  const decidersOf = (column: string | undefined) => verified.dependencies.filter((rule) => rule.dependent === column);
+  const decided = groups.find((group) => group.detector === 'dependency' && decidersOf(group.column).length === 1);
+  if (!decided) throw new Error('the recording needs a group of the dependency detector');
+  const other = groups.find(
+    (group) => group.column === decided.column && group.detector !== 'dependency' && group.issues.every((issue) => issue.fix?.kind === 'set-cell'),
+  );
+  if (!other) throw new Error('the sample needs a group of another detector on the same column');
+  const [{ determinant }] = decidersOf(decided.column);
+
+  const stripsOf = async (group: IssueGroup) => {
+    const region = screen.getByRole('group', { name: titleOf(group) });
+    await user.click(within(region).getByRole('button', { name: titleOf(group), expanded: false }));
+    return within(region).getAllByRole('table');
+  };
+  const headersOf = (strip: HTMLElement) => within(strip).getAllByRole('columnheader').map((header) => header.textContent);
+
+  // The deciding column is a cell of the strip, with the value the row has in it.
+  const decidedStrips = await stripsOf(decided);
+  expect(decidedStrips).toHaveLength(decided.issues.length);
+  decidedStrips.forEach((strip, position) => {
+    expect(headersOf(strip)).toEqual([determinant, decided.column, 'Decision']);
+    const row = dataset.rows.find((each) => each.id === decided.issues[position].rowIds[0]);
+    expect(within(strip).getAllByText(row?.cells[determinant] ?? '').length).toBeGreaterThan(0);
+  });
+
+  // Another issue on the same column has no such cell.
+  for (const strip of await stripsOf(other)) expect(headersOf(strip)).toEqual([other.column, 'Decision']);
+
+  // An issue carried over from an earlier analysis can sit next to a contract whose rule did not
+  // produce it. Its own text does not name that rule's column, so it gets no cell from it.
+  const [carried] = decided.issues;
+  const stranger = dataset.columns.find(
+    (name) => name !== determinant && name !== decided.column && !carried.reason.includes(name) && !(carried.evidence ?? '').includes(name),
+  );
+  if (!stranger) throw new Error('the sample needs a column that the issue does not name');
+  const alone = (rule: { determinant: string }) =>
+    render(
+      <ul>
+        <IssueRow
+          issue={carried}
+          status="accepted"
+          columns={dataset.columns}
+          rowsById={new Map(dataset.rows.map((row) => [row.id, row]))}
+          removedRows={new Map()}
+          dependencies={[{ determinant: rule.determinant, dependent: decided.column ?? '', reason: '', support: '' }]}
+          onDecide={() => {}}
+        />
+      </ul>,
+    ).container;
+  expect(headersOf(within(alone({ determinant: stranger })).getByRole('table'))).toEqual([decided.column, 'Decision']);
+  // The same issue, alone, next to the rule it names.
+  expect(headersOf(within(alone({ determinant })).getByRole('table'))).toEqual([determinant, decided.column, 'Decision']);
 });
