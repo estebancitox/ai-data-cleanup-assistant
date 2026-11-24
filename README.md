@@ -9,6 +9,8 @@ Built in one day for the One Day Build challenge (Project 4, "AI data cleanup as
 rules about the file, code checks each rule against the data before using it, and nothing
 changes until the user accepts it.
 
+![The review screen: the summary by type, the AI rules and the first group of issues](docs/screenshot.png)
+
 ## What it does
 
 - Finds the four kinds of problem the brief names: duplicates, inconsistent values, missing
@@ -143,7 +145,10 @@ and 3,380 output tokens, about 16 seconds, about 0.10 USD at the prices publishe
 
 That is why there is a second dataset from another domain: sales contacts, 310 rows, 99
 planted errors and 4 traps. I did not open it while building. I scored it once, at the commit
-tagged `freeze`, and changed no code, prompt or threshold because of the result.
+tagged `freeze`, and changed no code, prompt or threshold because of the result. After the
+freeze I restyled the interface (session 6). The code that produced this score did not change:
+`git diff --stat freeze -- src/core src/ai src/app/api src/lib fixtures scripts package.json package-lock.json`
+prints nothing.
 
 | | Development, recorded run | Held-out, scored once | Threshold (SPEC §8.4) | Held-out against it |
 |---|---|---|---|---|
@@ -215,25 +220,29 @@ in [DECISIONS.md](DECISIONS.md).
    [docs/prompts](docs/prompts)): the agent shows a plan and waits, builds, and reports against
    done criteria that were fixed before the run. The interface and the AI layer were built in
    parallel in two git worktrees and then merged. A fifth session fixed what the second review
-   found, and a documents-only session logged the held-out run.
+   found, and a documents-only session logged the held-out run. A sixth session, after the
+   freeze, restyled the interface and changed presentation only.
 3. **Predictions before runs.** Before changing the outlier rule I wrote down the result I
    expected (112 issues, 105 found, 7 false positives). The run gave exactly that.
-4. **Three independent reviews.** A separate agent with no context read the core: it found no
+4. **Four independent reviews.** A separate agent with no context read the core: it found no
    blocker and several smaller problems, and eight fixes went in before anything was built on
    top. A second review, of the AI layer and the interface, found that a decision made while
    the AI was still answering could be lost. I fixed it, with tests, before the freeze. A third
    review, of those fixes, ran at the freeze and found the same loss through a narrower window,
-   plus two smaller problems. I did not fix them: they are listed under Open findings.
+   plus two smaller problems. I did not fix them: they are listed under Open findings. A fourth
+   review, of the restyle, found three sentences on screen that could be false in rare states.
+   I fixed them, and the reviewer checked the fixes before the merge.
 5. **Findings instead of patches.** When the code and the SPEC disagreed, the disagreement was
    written down and decided between sessions. The SPEC went from 1.0 to 1.4 that way, and two
-   of the findings were mistakes in my own SPEC.
+   of the findings were mistakes in my own SPEC. Version 1.5 only rewrites the two sentences
+   about the interface that the restyle made false.
 
 ### How I used AI to build it
 
 - Claude, as a design partner: the SPEC, the datasets and the session prompts were drafted
   with it and approved by me.
 - Claude Code, for the implementation, in the gated sessions above.
-- A second Claude Code agent, restricted to reading the diff, for the three independent
+- A second Claude Code agent, restricted to reading the diff, for the four independent
   reviews.
 - What stayed with me: approving or changing every plan, deciding every finding, and every
   paid model call and every push. The API key never entered an agent session.
@@ -260,8 +269,10 @@ Library and the Anthropic TypeScript SDK. No database.
   is a case where that notice goes away too early.
 - The AI can propose format rules (for example, that a column holds emails). This version checks
   them against the file and does not use them to find issues.
-- Checked by hand with the keyboard and at 779 and 1023 px wide. Not tested with a screen
-  reader or at phone widths.
+- The restyled interface was checked by hand in a desktop-width window. At 779 and 1023 px
+  wide it was checked only on screenshots taken by the build agent, and keyboard reach only by
+  a test. The look of the "Run live" button was not checked in a browser after the restyle.
+  Not tested with a screen reader or at phone widths.
 - Analysis runs on the main thread. The rule-based pass over a generated file of 50,000 rows and
   12 columns (8 MB) took about 8 seconds, measured in Node, and the browser tab does not respond
   during that time. With AI on, the pass runs a second time when the contract arrives.
@@ -272,9 +283,9 @@ Library and the Anthropic TypeScript SDK. No database.
 
 ## Open findings
 
-The third review ran at the freeze and returned "fix". I recorded what it found and changed no
-code, so these are open. They are F75 to F78 in [DECISIONS.md](DECISIONS.md). None of them was
-reproduced in a browser.
+The third review ran at the freeze and returned "fix". I recorded what it found and did not fix
+it, so these are open. The restyle that came later left this logic untouched. They are F75 to
+F78 in [DECISIONS.md](DECISIONS.md). None of them was reproduced in a browser.
 
 1. **Must fix: a decision clicked while a new AI result is being computed can be lost.** When
    the contract or a round of AI opinions arrives, the page computes the new analysis on the
@@ -322,4 +333,4 @@ on the next export of the same feed; and hand edits in the review.
 | `evals` | The scorer, the eval commands and every committed run, the held-out run included |
 | `fixtures` | The datasets, their ground truth and the recorded AI responses |
 | `scripts/generate-fixtures.mjs` | The seeded generator of the datasets |
-| `docs/prompts` | The prompts of the build and fix sessions, and of the second and third reviews. The prompt of the first review was not kept |
+| `docs/prompts` | The prompts of the build, fix and design sessions, and of the second, third and fourth reviews. The prompt of the first review was not kept |
