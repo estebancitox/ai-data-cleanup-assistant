@@ -19,27 +19,33 @@ export function DismissedByAi({ issues, columns, rowsById, onRestore }: Dismisse
   const id = useId();
 
   return (
-    <section aria-labelledby={`${id}-title`} className="mt-10 border-t border-line pt-4">
-      <h2 id={`${id}-title`} className="text-[15px] font-semibold leading-snug">
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={open ? `${id}-issues` : undefined}
-          onClick={() => setOpen(!open)}
-          className="-mx-1 inline-flex cursor-pointer items-baseline gap-2 rounded-[3px] px-1 text-left hover:underline"
-        >
-          <span aria-hidden="true" className="w-3 shrink-0 font-mono text-[12px] text-muted">
-            {open ? "▾" : "▸"}
-          </span>
-          Dismissed by AI <span className="font-mono font-normal">({issues.length})</span>
-        </button>
-      </h2>
-      <p className="mt-1 max-w-[75ch] pl-5 text-muted">
-        The rules reported these, and the AI judged that they are not problems. They are left out of the counts and of
-        the bulk actions, and they change nothing in the cleaned file. Restore one to decide it yourself.
-      </p>
+    // The model's own section: its edge is the second pen.
+    <section aria-labelledby={`${id}-title`} className="mt-8 border border-grid border-l-[3px] border-l-model bg-sheet">
+      <div className="px-4 py-3">
+        <h2 id={`${id}-title`} className="text-title font-semibold">
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={open ? `${id}-issues` : undefined}
+            onClick={() => setOpen(!open)}
+            className="-mx-1 inline-flex cursor-pointer items-baseline gap-2.5 rounded-control px-1 text-left hover:underline"
+          >
+            <span
+              aria-hidden="true"
+              className="inline-flex size-4 shrink-0 items-center justify-center self-center border border-edge bg-sheet text-note leading-none font-bold"
+            >
+              {open ? "−" : "+"}
+            </span>
+            Dismissed by AI <span className="font-normal">({issues.length})</span>
+          </button>
+        </h2>
+        <p className="mt-1 max-w-[80ch] pl-[1.625rem] text-muted">
+          The rules reported these, and the AI judged that they are not problems. They are left out of the counts and
+          of the bulk actions, and they change nothing in the cleaned file. Restore one to decide it yourself.
+        </p>
+      </div>
       {open && (
-        <ul id={`${id}-issues`} className="mt-3 pl-5">
+        <ul id={`${id}-issues`} className="border-t border-grid bg-canvas px-4 pb-3">
           {issues.map((issue) => (
             <IssueRow
               key={issue.id}

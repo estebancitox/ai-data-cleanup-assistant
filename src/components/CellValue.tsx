@@ -1,6 +1,6 @@
-// A cell value as it is in the file, in the monospaced face. The pieces a fix changes are
-// marked with the accent and a line; changed whitespace is drawn as boxed dots, so that a
-// space that goes away can be seen.
+// A cell value as it is in the file, in the mono face. The pieces a fix changes are marked
+// with a line, through or under; changed whitespace is drawn as boxed dots, so that a space
+// that goes away can be seen.
 
 import { showWhitespace, type Segment } from "../lib/diff";
 
@@ -13,7 +13,8 @@ interface CellValueProps {
 
 export function CellValue({ segments, side = "new" }: CellValueProps) {
   if (segments.every((segment) => segment.text === "")) {
-    return <span className="text-[13px] text-muted">(empty)</span>;
+    // Its own box: the strike of a cell that goes away does not cross a label.
+    return <span className="inline-block text-note text-muted">(empty)</span>;
   }
   const textClass = side === "old" ? "changed-old" : "changed-new";
   return (

@@ -78,6 +78,8 @@ function nameOf(issue: Issue): string {
 }
 const acceptName = (issue: Issue) => (hasFix(issue) ? `Accept fix: ${nameOf(issue)}` : `Confirm flag: ${nameOf(issue)}`);
 const rejectName = (issue: Issue) => (hasFix(issue) ? `Reject fix: ${nameOf(issue)}` : `Dismiss flag: ${nameOf(issue)}`);
+/** The control that shows the other columns of an issue's row, or of both rows of a duplicate. */
+const wholeName = (issue: Issue) => `${issue.fix?.kind === 'delete-row' ? 'Show whole rows' : 'Show whole row'}: ${nameOf(issue)}`;
 
 const titleOf = (group: IssueGroup) => describeGroup(group).title;
 const groupOf = (group: IssueGroup) => screen.getByRole('group', { name: titleOf(group) });
@@ -225,10 +227,11 @@ it(
       for (const issue of group.issues) {
         expect(within(region).getByRole('button', { name: acceptName(issue), pressed: false })).toBeTruthy();
         expect(within(region).getByRole('button', { name: rejectName(issue), pressed: false })).toBeTruthy();
+        expect(within(region).getByRole('button', { name: wholeName(issue), expanded: false })).toBeTruthy();
         issueControls += 2;
       }
-      // The disclosure, two bulk buttons and two buttons per issue: nothing without a name.
-      expect(within(region).getAllByRole('button')).toHaveLength(3 + 2 * count);
+      // The disclosure, two bulk buttons and three buttons per issue: nothing without a name.
+      expect(within(region).getAllByRole('button')).toHaveLength(3 + 3 * count);
     }
     expect(issueControls).toBe(2 * sample.analysis.issues.length);
   },
@@ -611,4 +614,101 @@ it('start over asks before it discards decisions', async () => {
   await user.click(button('Use sample data'));
   await screen.findByRole('button', { name: 'Download cleaned CSV' });
   expect(screen.getByRole('status').textContent).toContain('0 accepted, 0 rejected');
+});
+
+it('the other columns of a row are rendered only when asked for', async () => {
+  const user = await openSample();
+  const group = fixGroups(sample.groups).find((each) => each.issues[0].fix?.kind === 'set-cell');
+  if (!group) throw new Error('the sample has no group of cell fixes');
+  const region = await expand(user, group);
+  const [issue] = group.issues;
+  const whole = within(region).getByRole('button', { name: wholeName(issue), expanded: false });
+  const sheetName = `Row ${issue.rowIds[0]}, every column`;
+  expect(within(region).queryByRole('region', { name: sheetName })).toBeNull();
+
+  // Opened: every column of the file, in the file's order.
+  await user.click(whole);
+  expect(whole.getAttribute('aria-expanded')).toBe('true');
+  const sheet = within(region).getByRole('region', { name: sheetName });
+  expect(within(sheet).getAllByRole('columnheader').map((header) => header.textContent)).toEqual(sample.dataset.columns);
+
+  await user.click(whole);
+  expect(within(region).queryByRole('region', { name: sheetName })).toBeNull();
+});
+
+it('a duplicate fix that is not applied says the row would be removed', async () => {
+  const user = await openSample();
+  const group = sample.groups.find((each) => each.type === 'duplicate');
+  if (!group) throw new Error('the sample has no group of duplicates');
+  const region = await expand(user, group);
+  const [issue] = group.issues;
+  expect(within(region).getAllByText('removed by the fix')).toHaveLength(group.issues.length);
+  expect(within(region).queryByText('would be removed')).toBeNull();
+
+  await user.click(within(region).getByRole('button', { name: rejectName(issue) }));
+  expect(within(region).getAllByText('would be removed')).toHaveLength(1);
+  expect(within(region).getAllByText('removed by the fix')).toHaveLength(group.issues.length - 1);
+
+  await user.click(within(region).getByRole('button', { name: acceptName(issue) }));
+  expect(within(region).queryByText('would be removed')).toBeNull();
+  expect(within(region).getAllByText('removed by the fix')).toHaveLength(group.issues.length);
+});
+
+it('the bar says what the download will do, with the counts it already has', async () => {
+  const user = await openSample();
+  const total = sample.analysis.issues.length;
+  const sentence = () => screen.getByText(/^Only accepted fixes are applied/).textContent;
+  expect(sentence()).toBe(
+    `Only accepted fixes are applied, and 0 rows are removed. ${total} pending and 0 rejected leave the file as it is.`,
+  );
+
+  // One duplicate fix accepted removes one row; one rejected leaves the file as it is.
+  const group = sample.groups.find((each) => each.type === 'duplicate' && each.issues.length > 1);
+  if (!group) throw new Error('the sample has no group of duplicates');
+  const region = await expand(user, group);
+  await user.click(within(region).getByRole('button', { name: acceptName(group.issues[0]) }));
+  await user.click(within(region).getByRole('button', { name: rejectName(group.issues[1]) }));
+  expect(sentence()).toBe(
+    `Only accepted fixes are applied, and 1 row is removed. ${total - 2} pending and 1 rejected leave the file as it is.`,
+  );
+});
+
+it('an accepted fix on a row that a duplicate fix removes is not drawn as what the file will hold', async () => {
+  const text = serializeCsv(inventory());
+  const expected = expectedFor(text, 'inventory.csv');
+  // A cell fix on the very row that a duplicate fix removes.
+  const duplicate = expected.analysis.issues.find(
+    (issue) =>
+      issue.fix?.kind === 'delete-row' &&
+      expected.analysis.issues.some((other) => other.fix?.kind === 'set-cell' && other.fix.rowId === issue.fix?.rowId),
+  );
+  if (duplicate?.fix?.kind !== 'delete-row') throw new Error('the test data needs a fix on a removed row');
+  const { rowId } = duplicate.fix;
+  const cell = expected.analysis.issues.find((issue) => issue.fix?.kind === 'set-cell' && issue.fix.rowId === rowId);
+  if (!cell) throw new Error('the test data needs a fix on a removed row');
+  const groupWith = (issue: Issue) => {
+    const group = expected.groups.find((each) => each.issues.includes(issue));
+    if (!group) throw new Error('no group for the issue');
+    return group;
+  };
+
+  const user = await openFile(csvFile(text, 'inventory.csv'));
+  await screen.findByRole('heading', { name: 'inventory.csv' });
+  const cellRegion = await expand(user, groupWith(cell));
+  const duplicateRegion = await expand(user, groupWith(duplicate));
+  const strip = () => within(cellRegion).getByRole('table', { name: `Row ${rowId}, ${cell.column}` });
+  const acceptedFills = () => strip().querySelectorAll('.cell-accepted').length;
+  const acceptDuplicate = within(duplicateRegion).getByRole('button', { name: acceptName(duplicate) });
+
+  // Accepted, and the row stays: the proposed value is what the cleaned file will hold.
+  await user.click(within(cellRegion).getByRole('button', { name: acceptName(cell) }));
+  expect(acceptedFills()).toBe(1);
+
+  // The row is removed: the fix is not applied. The word stays, the fill does not.
+  await user.click(acceptDuplicate);
+  expect(acceptedFills()).toBe(0);
+  expect(within(strip()).getByText('Accepted')).toBeTruthy();
+
+  await user.click(acceptDuplicate);
+  expect(acceptedFills()).toBe(1);
 });

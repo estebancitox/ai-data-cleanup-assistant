@@ -25,7 +25,7 @@ export function Upload({ reading, error, onFile, onSample }: UploadProps) {
 
   return (
     <section aria-labelledby="upload-title" className="py-16">
-      <h2 id="upload-title" className="text-[28px] font-semibold leading-tight tracking-tight">
+      <h2 id="upload-title" className="text-display font-bold">
         Upload a CSV file
       </h2>
       <p className="mt-2 max-w-[60ch] text-muted">
@@ -41,14 +41,14 @@ export function Upload({ reading, error, onFile, onSample }: UploadProps) {
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        className={`mt-8 border border-dashed px-8 py-12 ${dragging ? "border-accent bg-surface" : "border-line"}`}
+        className={`mt-8 border-2 border-dashed px-8 py-10 ${dragging ? "border-ink bg-head" : "border-edge bg-sheet"}`}
       >
-        <p className="text-[15px] font-medium">{dragging ? "Drop the file to load it" : "Drop a CSV file here"}</p>
+        <p className="text-title font-semibold">{dragging ? "Drop the file to load it" : "Drop a CSV file here"}</p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           {/* The input stays in the tab order; its label is what the eye sees. */}
           <label
             htmlFor="csv-file"
-            className="btn btn-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent"
+            className="btn btn-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink"
           >
             Choose a CSV file
             <input
@@ -75,13 +75,13 @@ export function Upload({ reading, error, onFile, onSample }: UploadProps) {
             </p>
           )}
         </div>
-        <p className="mt-6 text-[13px] text-muted">
-          Limits: <span className="font-mono text-ink">{UPLOAD_LIMITS.megabytes} MB</span>,{" "}
-          <span className="font-mono text-ink">{UPLOAD_LIMITS.rows.toLocaleString("en-US")}</span> rows and{" "}
-          <span className="font-mono text-ink">{UPLOAD_LIMITS.columns}</span> columns, saved as UTF-8. The file is
+        <p className="mt-6 text-note text-muted">
+          Limits: <b className="text-ink">{UPLOAD_LIMITS.megabytes} MB</b>,{" "}
+          <b className="text-ink">{UPLOAD_LIMITS.rows.toLocaleString("en-US")}</b> rows and{" "}
+          <b className="text-ink">{UPLOAD_LIMITS.columns}</b> columns, saved as UTF-8. The file is
           read in your browser and the original is never modified.
         </p>
-        <p className="mt-2 max-w-[80ch] text-[13px] text-muted">
+        <p className="mt-2 max-w-[80ch] text-note text-muted">
           What leaves the browser: when the server has an API key, a description of each column with a capped list of
           its values, up to 20 sample rows and the full rows of the ambiguous cases go to the AI model; without a key,
           only the SHA-256 of the file is sent to this server.
@@ -89,7 +89,7 @@ export function Upload({ reading, error, onFile, onSample }: UploadProps) {
       </div>
 
       {error !== undefined && (
-        <div role="alert" className="mt-6 border-l-2 border-accent pl-4">
+        <div role="alert" className="mt-6 border-l-[3px] border-removal pl-4">
           <p className="font-semibold">This file was not loaded</p>
           <p className="mt-1 max-w-[70ch]">{error}</p>
         </div>

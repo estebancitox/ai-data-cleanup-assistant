@@ -7,9 +7,10 @@ import { useRef, useState } from "react";
 import type { Analysis, Decisions } from "../core/types";
 import { runAnalysis, type AnalysisSnapshot } from "../lib/analysis";
 import { carryDecided } from "../lib/carry";
-import { modeLine, plural } from "../lib/describe";
+import { plural } from "../lib/describe";
 import { loadFile, type LoadedFile, type LoadResult } from "../lib/load";
 import { loadSample } from "../lib/sample";
+import { ModeLine } from "./ModeLine";
 import { Review } from "./Review";
 import { Upload } from "./Upload";
 
@@ -77,20 +78,17 @@ export function Assistant() {
     setPhase({ name: "upload", reading: false });
   }
 
-  // SPEC §6.6: the mode belongs to a file, so there is none before a file is analysed.
-  const mode = phase.name === "review" ? modeLine(phase.snapshot.run) : "AI mode: chosen when a file is loaded";
-
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-line">
-        <div className="mx-auto flex w-full max-w-[1120px] items-baseline justify-between gap-4 px-6 py-3.5">
-          <h1 className="text-[15px] font-semibold tracking-tight">Data cleanup assistant</h1>
-          <p className="font-mono text-[12px] text-muted">{mode}</p>
+      <header className="border-b border-grid bg-sheet">
+        <div className="mx-auto flex w-full max-w-page flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-6 py-3">
+          <h1 className="text-title font-bold">Data cleanup assistant</h1>
+          <ModeLine run={phase.name === "review" ? phase.snapshot.run : undefined} />
         </div>
       </header>
 
       {phase.name === "upload" && (
-        <main className="mx-auto w-full max-w-[1120px] flex-1 px-6">
+        <main className="mx-auto w-full max-w-page flex-1 px-6">
           <Upload
             reading={phase.reading}
             error={phase.error}
@@ -101,9 +99,9 @@ export function Assistant() {
       )}
 
       {phase.name === "analysing" && (
-        <main className="mx-auto w-full max-w-[1120px] flex-1 px-6 py-16">
-          <p className="font-mono text-[13px] text-muted">{phase.file.dataset.fileName}</p>
-          <p role="status" className="mt-2 text-xl font-semibold tracking-tight">
+        <main className="mx-auto w-full max-w-page flex-1 px-6 py-16">
+          <p className="file text-note text-muted">{phase.file.dataset.fileName}</p>
+          <p role="status" className="mt-2 text-display font-semibold">
             Parsed {plural(phase.file.dataset.rows.length, "row")} and{" "}
             {plural(phase.file.dataset.columns.length, "column")}. Looking for issues…
           </p>

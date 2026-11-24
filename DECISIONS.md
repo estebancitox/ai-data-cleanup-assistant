@@ -1112,3 +1112,71 @@ name no OpenTelemetry package. Whether either path can put rows of the user's fi
 or a trace on this server was not verified.
 
 Status: open.
+
+### Session 6: one visual identity for the review interface (2026-11-23, from 20:37 -05)
+
+**F79. The interface was restyled after the freeze, presentation only (session 6; SPEC 1.5,
+§7.3).** The tag `freeze` marks the code that the held-out run scored. After it, session 6
+replaced the look of the upload and review screens with one made for this product, a
+marked-up sheet: a fill says what happens to a cell in the download, and one second colour
+marks what the model said. The data, the behaviour, the decisions and the exports are the
+same. Nothing that produced the score changed. At the end of the session
+
+    git diff --stat freeze -- src/core src/ai src/app/api src/lib fixtures scripts package.json package-lock.json
+
+printed nothing.
+
+The paths it changed: `src/app/globals.css` and `src/app/layout.tsx`; in `src/components`,
+`AiRules.tsx`, `AiStatus.tsx`, `Assistant.tsx`, `CellValue.tsx`, `DismissedByAi.tsx`,
+`DuplicatePair.tsx`, `FileHeader.tsx`, `Group.tsx`, `IssueRow.tsx`, `Review.tsx`,
+`ReviewBar.tsx`, `Summary.tsx` and `Upload.tsx`, the new `DecisionBar.tsx`, `ModeLine.tsx` and
+`WholeRows.tsx`, and the tests `Assistant.test.tsx` and `Assistant.ai.test.tsx`; `SPEC.md`
+(1.5: two sentences of §7.3, which the owner approved at gate 1 of the session) and this
+file. In `Assistant.tsx` and `Review.tsx` only the
+markup, the imports and the line that built the mode string changed: the state, the effects,
+the handlers, the loop that receives the snapshots and the comparison behind "Decisions
+changed after a download" are as they were at the freeze.
+
+What follows from it:
+
+- The file and line references of F75, F76 and F77 are those of the tag `freeze`
+  (`git show freeze:src/components/Assistant.tsx`). F75 to F78 are not fixed here.
+- `modeLine` in `src/lib/describe.ts` is left unused by the page. It joins the mode, the model
+  and the date into one string with middle dots, and `src/lib` could not change in this
+  session. The header renders the same three facts as three pieces
+  (`src/components/ModeLine.tsx`). That duplicates the two fallback wordings and the two lines
+  that format the date of a recording. `describe.test.ts` still tests `modeLine`, and four
+  assertions of `Assistant.ai.test.tsx` pin the full text of the new line.
+- The bar says what the download will do with the numbers the page already had: the accepted,
+  rejected and pending counts and the rows that accepted duplicate fixes remove. It states no
+  number of cells before a download, because the accepted count includes confirmed flags,
+  which change no cell (owner's decision at gate 1). Its sentence is "Only accepted fixes are
+  applied, and N rows are removed. P pending and R rejected leave the file as it is." It does
+  not say that every accepted fix is applied: an accepted fix on a cell of a row that an
+  accepted duplicate fix removes is not (SPEC §5.6). The strip of such a fix keeps the word
+  "Accepted" and its note, without the accepted fill.
+- The cell that explains an issue (the column that decides its column) is shown only on
+  issues of the `dependency` detector, and only when exactly one verified rule decides that
+  column, because an issue does not say which rule produced it. The column comes from the
+  verified contract. An issue has no field for it, so its own reason or evidence must also
+  name that column: the text is only a guard, for an issue carried over from an earlier
+  analysis (SPEC §7.3) next to a contract whose rule did not produce it. Review 4 noted a
+  residual: the guard is a substring match, so a determinant whose name is contained in
+  another word of the issue's text would pass. It is not triggered by the 16 column names of
+  the sample. Not fixed.
+- The four progress strings of §7.2 were reworded into steps, numbered in the order shown,
+  each with who did it:
+  - before, "Parsed N rows" and "Rules: N issues"; after, one step, "From the rules" with
+    "N issues in N parsed rows". The number is what it was: the rule issues on screen.
+  - before, "Contract: N rules proposed, V verified, R rejected"; after, two steps, "The
+    model proposed" with "N rules", and "Code verified" with "V verified, R rejected".
+  - before, "AI opinions: A of C ambiguous cases (X confirmed, Y dismissed, Z unsure)";
+    after, "The model's second opinion" with "A of C ambiguous cases: X confirmed, Y
+    dismissed, Z unsure".
+  The three sentences shown while a step is under way kept their words.
+- The upload screen got the colours, the typefaces and the control shapes only. Its
+  restructuring (part 5 of the session prompt) was left out: a real suggestion from the sample
+  on that screen needs either a value of `fixtures/` in `src` or an analysis of the sample
+  before a file is chosen.
+
+Status: done in session 6. Open: `modeLine` is unused and the date format exists twice.
