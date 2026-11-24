@@ -82,7 +82,8 @@ function chunks<T>(items: T[], size: number): T[][] {
 /**
  * Yields the analysis of a file, and yields it again each time it gains results or the state of
  * the AI run changes. Every snapshot replaces the one before; the page keeps the user's
- * decisions across them, which works because issue ids are stable (SPEC §4.4, invariant 6).
+ * decisions across them. Issue ids are stable (SPEC §4.4, invariant 6), and a decided issue
+ * that a snapshot no longer holds is carried over by the page (SPEC §7.3, `carryDecided`).
  *
  * The first snapshot is the rule-based analysis. Then the mode is decided as SPEC §6.6 says:
  * the recording of the file if there is one, a live contract if the server is live, otherwise
@@ -101,6 +102,9 @@ export async function* runAnalysis(file: LoadedFile): AsyncGenerator<AnalysisSna
   const [recording, status] = await Promise.all([fetchRecording(file.sha256), fetchStatus()]);
   const live = status.ok && status.value.live;
   const liveModel = status.ok ? status.value.model : null;
+  // What the page says about the analysis on screen until a live contract arrives.
+  let before: AiRun = { mode: 'live', model: liveModel };
+  let keeps = 'The analysis on screen was made without this step and stays as it is.';
 
   if (recording.ok) {
     const { contract, verdicts, model, recordedAt } = recording.value;
@@ -109,17 +113,20 @@ export async function* runAnalysis(file: LoadedFile): AsyncGenerator<AnalysisSna
     analysis = applyVerdicts(withContract, verdicts);
     ai = { mode: 'recorded', model };
     const wanted = gate();
-    run = {
+    const recordedRun: AiRun = {
       mode: 'recorded',
       model,
       recordedAt,
       contract: ruleCounts(verified),
       adjudication: verdictCounts(analysis, selectCases(dataset, withContract).length),
-      ...(live ? { runLive: wanted.open } : {}),
     };
+    run = live ? { ...recordedRun, runLive: wanted.open } : recordedRun;
     yield snapshot();
     if (!live) return;
     await wanted.opened;
+    // "Run live": the recording is what is on screen until the model has answered (SPEC §6.6).
+    before = recordedRun;
+    keeps = 'The recorded analysis stays on screen as it is.';
   } else if (!live) {
     run = { mode: 'off', model: null, notice: status.ok ? OFF_NOTICE : UNKNOWN_NOTICE };
     yield snapshot();
@@ -129,7 +136,7 @@ export async function* runAnalysis(file: LoadedFile): AsyncGenerator<AnalysisSna
   // Live. The analysis on screen stays until the contract arrives.
   let inferred: { contract: Contract; model: string } | undefined;
   while (!inferred) {
-    run = { mode: 'live', model: liveModel, busy: 'contract' };
+    run = { ...before, busy: 'contract' };
     yield snapshot();
     const answer = await requestContract(buildContractRequest(dataset));
     if (answer.ok) {
@@ -137,12 +144,7 @@ export async function* runAnalysis(file: LoadedFile): AsyncGenerator<AnalysisSna
       break;
     }
     const again = gate();
-    run = {
-      mode: 'live',
-      model: liveModel,
-      notice: `${failureText(answer.status)} The analysis on screen was made without this step and stays as it is.`,
-      retry: again.open,
-    };
+    run = { ...before, notice: `${failureText(answer.status)} ${keeps}`, retry: again.open };
     yield snapshot();
     await again.opened;
   }
@@ -168,7 +170,14 @@ export async function* runAnalysis(file: LoadedFile): AsyncGenerator<AnalysisSna
     yield snapshot();
     const failed: Case[][] = [];
     let failure = 0;
-    for (const round of chunks(waiting, CONCURRENT_REQUESTS)) {
+    for (const [position, round] of chunks(waiting, CONCURRENT_REQUESTS).entries()) {
+      if (position > 0) {
+        // Between rounds: the opinions so far. It is also where a run the page has left ends,
+        // before the next requests go out, because the page stops reading at a snapshot.
+        analysis = applyVerdicts(withContract, verdicts);
+        run = { ...reached(), busy: 'adjudication' };
+        yield snapshot();
+      }
       const answers = await Promise.all(round.map(requestVerdicts));
       answers.forEach((answer, position) => {
         if (answer.ok) verdicts.push(...answer.value.verdicts);

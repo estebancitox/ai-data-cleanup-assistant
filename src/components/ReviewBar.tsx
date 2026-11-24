@@ -6,6 +6,8 @@ import { bulkWord, plural } from "../lib/describe";
 
 interface ReviewBarProps {
   counts: Counts;
+  /** Accepted fixes that the AI judged "probably not a problem", and the titles of their groups. */
+  doubted?: { count: number; groups: string[] };
   /** The last bulk action, while it can still be undone. */
   lastBulk?: { count: number; decision: Decision; onFlags: boolean };
   onUndo: () => void;
@@ -17,7 +19,7 @@ interface ReviewBarProps {
   onDownloadLog: () => void;
 }
 
-export function ReviewBar({ counts, lastBulk, onUndo, last, stale, onDownloadCsv, onDownloadLog }: ReviewBarProps) {
+export function ReviewBar({ counts, doubted, lastBulk, onUndo, last, stale, onDownloadCsv, onDownloadLog }: ReviewBarProps) {
   return (
     <div className="sticky bottom-0 border-t border-line bg-paper">
       <div className="mx-auto flex w-full max-w-[1120px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-3">
@@ -27,6 +29,14 @@ export function ReviewBar({ counts, lastBulk, onUndo, last, stale, onDownloadCsv
             <span className="font-mono font-medium">{counts.accepted}</span> accepted,{" "}
             <span className="font-mono font-medium">{counts.rejected}</span> rejected,{" "}
             <span className="font-mono font-medium">{counts.pending}</span> pending
+          </p>
+          {/* The element is always in the page, so that a screen reader hears the notice when it
+              appears. The notice changes no decision. */}
+          <p aria-live="polite" className="text-[13px] font-medium">
+            {doubted &&
+              `The AI doubts ${plural(doubted.count, "fix", "fixes")} you accepted: its opinion is "probably not a problem". Nothing was changed, and ${
+                doubted.count === 1 ? "the fix stays" : "the fixes stay"
+              } accepted until you decide otherwise. Where: ${doubted.groups.join("; ")}.`}
           </p>
           {/* One step back, for the last bulk action only; it is in the bar so that it is in reach
               wherever the page is scrolled. */}

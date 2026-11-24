@@ -206,6 +206,12 @@ order is revised at feature freeze using the evaluation results.
 13. C5, the detector for values that fail a column's `email` or `url` format. The format is
     still verified (SPEC §6.3) and shown in the "AI rules" panel; nothing flags the cells
     (F36; CUT in SPEC 1.3).
+14. S3, the "What is sent to the AI" panel. The request is not shown before it is sent; the
+    upload screen says in one sentence what leaves the browser (F62; CUT in SPEC 1.4).
+15. A mark on an issue that was kept from an earlier analysis. After "Run live", a decided
+    issue that the live contract does not propose stays on the page and in the change log,
+    and nothing says that it came from the recorded analysis; the log names the live model
+    (F55).
 
 ## 9. Stack versions
 
@@ -753,3 +759,162 @@ live") is covered by tests that answer the two model routes with the recorded co
 verdicts, never by a real call.
 
 Resolution: the owner checks it by hand with the key; the checklist is in the session report.
+
+### Session 5: review fixes before the freeze (2026-11-23, from 18:54 -05)
+
+An independent review of `e88fb79..6d8bf55` returned FIX BEFORE FREEZE with one MUST FIX and
+seven notes, and the owner's hand check of live mode added two. One finding for each, with
+what was done, and the ones this session found on the way.
+
+**F53. A decision made before a later snapshot was lost (reviewer finding 1, MUST FIX; SPEC
+§7.3).** The page replaced the analysis on screen with each snapshot and kept the decisions by
+issue id. An issue whose cell a later snapshot gave to another issue lost its id, and with it
+the decision, without a message. Checked on `nursery()`, row 38: the rules report
+`placeholder:38:genus:set-811c9dc5`, which empties `n/a`; the contract's rule species decides
+genus takes the cell as `dependency:38:genus:set-8c4f65cd`, a high-confidence fix that writes
+`Quercus`. An accepted fix was no longer counted or applied; a rejected one came back as a
+pending fix that "Accept all high-confidence fixes" would accept. "Run live" did the same to
+a decided AI issue that the live contract did not propose.
+
+Resolution: fixed. `carryDecided` in `src/lib/carry.ts`, called where a snapshot replaces the
+one on screen (`src/components/Assistant.tsx`): a decided issue that the arriving analysis
+lacks is carried into it, and the issue on the same target that was not on screen is left
+out. SPEC 1.4, §7.3. Tests: `src/lib/carry.test.ts`, and in
+`src/components/Assistant.ai.test.tsx` `an accepted fix survives a contract that takes its
+cell`, `a rejected cell stays as it is after the contract` and `Run live keeps decisions
+already made`. The three fail without the call.
+
+**F54. A decided flag keeps out a later fix for its cell (SPEC §7.3; follows from F53).** A
+flag has no fix. When the user confirmed or dismissed a flag and a later snapshot brings a fix
+for the same cell, the fix is left out with the rest of that snapshot's issue for the cell, so
+the user never sees the proposal. Nothing is written to the cell without the user.
+
+Resolution: logged, as the owner approved at gate 1. Undoing the decision before the next
+snapshot lets the fix in.
+
+**F55. After "Run live", a kept issue says nothing about where it came from (SPEC §7.3,
+§7.4).** A decided AI issue of the recorded analysis that the live contract does not propose
+stays, with its recorded reason and opinion. The change log then says `mode: live` with the
+live model, and the "AI rules" panel lists the live contract, which does not hold the rule
+behind that issue.
+
+Resolution: logged; cut list, item 15. The owner chose not to add a line to the row in this
+session.
+
+**F56. An undo after the last snapshot does not bring back the issue that was left out
+(SPEC §7.3).** The rule is applied when a snapshot arrives. When the user undoes the decision
+of a carried issue after the run has ended, the issue stays on screen as pending; the issue
+it kept out returns only with another snapshot (a retry or "Run live").
+
+Resolution: logged, as the owner approved at gate 1.
+
+**F57. A line break in an issue id split the list of issues set aside (reviewer finding 2).**
+`src/components/Review.tsx` joined the ids of the issues dismissed by AI with a line break and
+split the text again. An id holds the column name, and a quoted header can hold a line break
+(checked: `parseCsv` keeps it, and the id is `outlier:36:height`, a line break, `cm:flag`).
+Such an issue was listed under "Dismissed by AI" and in its group, and counted as pending.
+
+Resolution: fixed. The set is built from the ids. Test: `a dismissed issue under a header
+with a line break is listed once`, which failed before the change with 8 pending for 7.
+
+**F58. After "Run live" fails, the header reads "AI live" over the recorded analysis
+(reviewer finding 3; SPEC §6.6).** The seam sets the mode to live when the contract request
+starts (`src/lib/analysis.ts`), before a live contract exists, and the header follows it.
+
+Resolution: fixed (part C, item 2). Until a live contract arrives, the seam keeps what it
+said about the analysis on screen: for a recording, its mode, model and date. A failed
+request says "The recorded analysis stays on screen as it is." SPEC 1.4, §6.6. Test: `a
+failed Run live leaves the recorded mode in the header`.
+
+**F59. C1 and C3 count spellings before R4 tidies them (reviewer finding 4; SPEC §5.4,
+§5.5).** As the reviewer reports it, the fix of a contract-driven detector can write a value
+with a trailing space, because the spellings are counted as written. Not verified in this
+session.
+
+Resolution: logged, not fixed. It is a finding about the SPEC, and no detector changes before
+the held-out run.
+
+**F60. The page's requests have no time limit (reviewer finding 5).** `src/lib/ai.ts` calls
+`fetch` with no abort signal, so a request the server never answers leaves the stage "asking"
+with no notice and no retry. The server's own call to the model has a time limit (SPEC §6.5).
+
+Resolution: logged, not fixed.
+
+**F61. "Start over" does not stop the rounds of adjudication under way (reviewer finding 6;
+SPEC §6.4).** The seam sends every round of requests between two snapshots, and the page can
+end the run only at a snapshot, so up to 6 requests still go out for a file the user left.
+
+Resolution: fixed (part C, item 3). The seam yields a snapshot between rounds, with the
+opinions so far, and the page stops reading at a snapshot once the user has started over, so
+the next round is not sent. A round under way still completes. SPEC 1.4, §6.4. Test in
+`src/lib/analysis.test.ts`: `a run the page has left sends no later round of adjudication
+requests`, which failed before the change with 5 requests for 3.
+
+**F62. S3 was never built, and two places said it was (reviewer finding 7; SPEC §2, §4.3,
+§6.1).** SPEC §4.3 and the comment of `buildContractRequest` said "The UI shows this object to
+the user before sending it". No panel exists.
+
+Resolution: S3 is CUT in SPEC 1.4 (cut list, item 14), and both sentences are corrected. The
+upload screen says in one sentence what leaves the browser; test `the upload screen says what
+is sent`. Two notes. The sentence adds "with a capped list of its values" to the owner's
+wording, because the description of a column holds values (§6.1). The number 20 is typed in
+the sentence: `SAMPLE_ROWS` is not among the exports of `src/core/contract`, and the test
+compares the sentence with the constant.
+
+**F63. The SDK could log request bodies (reviewer finding 8; SPEC §9.3).** The client took
+its log level from the environment variable `ANTHROPIC_LOG`; at `debug` the SDK prints
+request bodies, which hold rows of the user's file, into the server log.
+
+Resolution: fixed. The one place that creates the client, `createClient` in `src/ai/call.ts`,
+passes `logLevel: 'off'`; in `@anthropic-ai/sdk` 1.13.0 the option wins over the variable.
+The SDK's own warnings are lost with it, which the owner accepted. No test: a test file under
+`src/ai` was outside what this session could change.
+
+**F64. The "AI rules" panel implied that formats are used (owner's hand check; SPEC §6.3,
+§7.3).** The hand-check note said that format rules "are not checked or used". They are
+checked: `verifyContract` rejects a format when the share of values that pass its validator is
+under the threshold (`src/core/contract/verify.ts`, lines 74 to 84). They are not used,
+because C5 is CUT. The panel's introduction said each rule was checked "before using it".
+
+Resolution: the label only. The heading of the formats says they are checked against the file
+and not used to find issues in this version, and the introduction says the same. Every count
+stays: a format that passed its check is a verified rule. Test: `format rules are labelled as
+not used`.
+
+**F65. Nothing announces that the AI doubts a fix already accepted (owner's hand check; SPEC
+§6.4).** When an opinion of "probably not a problem" arrives for an issue the user has
+accepted, it shows only inside the row.
+
+Resolution: fixed (part C, item 1). A notice next to the bar's counts says how many accepted
+fixes the AI doubts and names their groups; it changes no decision and goes away when none is
+left accepted. It counts fixes only: a confirmed flag changes no cell. SPEC 1.4, §7.3. Test:
+`the bar says when the AI doubts a fix already accepted`.
+
+**F66. A rejected dependency is worded differently from a verified one (part C, item 4).**
+The panel shows a rejected rule with the summary the core writes, `listing_id -> address`,
+and a verified one as "agent_name decides agent_email".
+
+Resolution: fixed (part C, item 4). The panel rewrites the summary of a rejected dependency
+at its first ` -> `, because the core writes the text and `src/core` was not open to change.
+A column name that holds ` -> ` would be split in the wrong place. Test: `a rejected
+dependency is worded like a verified one`.
+
+**F67. A file with no recording shows a 404 in the browser console (SPEC §4.3, §6.6).** The
+page asks `GET /api/ai/recording` for every file, and the route answers 404 when there is
+none, which the browser prints as a failed request. The page handles the answer.
+
+Resolution: logged, not fixed.
+
+**F68. Two points of the reviewer that nobody verified.** First, the `catch` of the loop that
+consumes the snapshots in `src/components/Assistant.tsx` drops the exception: with a result on
+screen, a later failure of the seam leaves no trace. Second, the contract's arrival runs
+`analyze` a second time on the main thread; on a 50,000-row file that is about the 8 seconds
+of F49 again, with the page not responding.
+
+Resolution: logged, not verified and not fixed.
+
+**F69. The order of the issues is written twice.** `carryDecided` puts a carried issue where
+`analyze` would have it, and `analyze` does not export its order, so `src/lib/carry.ts`
+repeats the comparison (first row, column, last row). `src/core` was not open to change.
+
+Resolution: logged. A unit test compares the result with the order of `analyze`.

@@ -4,8 +4,9 @@
 // the file, the analysis and the user's decisions; everything else is derived from them.
 
 import { useRef, useState } from "react";
-import type { Decisions } from "../core/types";
+import type { Analysis, Decisions } from "../core/types";
 import { runAnalysis, type AnalysisSnapshot } from "../lib/analysis";
+import { carryDecided } from "../lib/carry";
 import { modeLine, plural } from "../lib/describe";
 import { loadFile, type LoadedFile, type LoadResult } from "../lib/load";
 import { loadSample } from "../lib/sample";
@@ -21,6 +22,12 @@ export function Assistant() {
   const [phase, setPhase] = useState<Phase>({ name: "upload", reading: false });
   // SPEC §4.3: by issue id; an absent id means pending.
   const [decisions, setDecisions] = useState<Decisions>({});
+  // The same decisions, for the loop of `start`: it outlives the render that began it.
+  const decided = useRef<Decisions>({});
+  const decide = (next: Decisions) => {
+    decided.current = next;
+    setDecisions(next);
+  };
   // Each load gets a number; a result that belongs to an older load is dropped.
   const run = useRef(0);
 
@@ -37,18 +44,20 @@ export function Assistant() {
     }
 
     const { file } = result;
-    setDecisions({});
+    decide({});
     setPhase({ name: "analysing", file });
     // The browser paints "analysing" before the detectors take the main thread.
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    let shown = false;
+    let shown: Analysis | undefined;
     try {
-      // Each snapshot replaces the analysis on screen. The decisions are kept.
+      // Each snapshot replaces the analysis on screen, except for the issues the user has
+      // decided: those stay, with their decisions (SPEC §7.3).
       for await (const snapshot of runAnalysis(file)) {
         if (run.current !== token) return;
-        setPhase({ name: "review", file, snapshot });
-        shown = true;
+        const analysis = shown ? carryDecided(shown, snapshot.analysis, decided.current) : snapshot.analysis;
+        shown = analysis;
+        setPhase({ name: "review", file, snapshot: analysis === snapshot.analysis ? snapshot : { ...snapshot, analysis } });
       }
     } catch {
       // With a result on screen, a later failure leaves that result where it is.
@@ -64,7 +73,7 @@ export function Assistant() {
 
   function startOver() {
     run.current += 1;
-    setDecisions({});
+    decide({});
     setPhase({ name: "upload", reading: false });
   }
 
@@ -106,7 +115,7 @@ export function Assistant() {
           file={phase.file}
           snapshot={phase.snapshot}
           decisions={decisions}
-          onDecisions={setDecisions}
+          onDecisions={decide}
           onStartOver={startOver}
         />
       )}

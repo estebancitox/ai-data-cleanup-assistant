@@ -23,6 +23,13 @@ const REJECTED_KIND: Record<string, string> = {
   dependency: "One column decides another",
 };
 
+/** SPEC §5.5: C5 is cut, so a format that passed its check produces no issue. */
+export const FORMATS_KIND = "Formats: checked against the file, not used to find issues in this version";
+
+/** A rejected dependency in the words of a verified one. The core writes it as "a -> b". */
+const rejectedSummary = (rule: VerifiedContract["rejected"][number]) =>
+  rule.rule === "dependency" ? rule.summary.replace(" -> ", " decides ") : rule.summary;
+
 const quoted = (values: string[]) => values.map((value) => `"${value}"`).join(", ");
 
 function verifiedRules(contract: VerifiedContract): Array<{ kind: string; rules: Rule[] }> {
@@ -64,7 +71,7 @@ function verifiedRules(contract: VerifiedContract): Array<{ kind: string; rules:
       })),
     },
     {
-      kind: "Formats",
+      kind: FORMATS_KIND,
       rules: contract.columns
         .filter((column) => column.format !== "none")
         .map((column) => ({ title: `${column.name}: ${column.format}` })),
@@ -114,9 +121,9 @@ function Rules({ contract }: { contract: VerifiedContract }) {
   return (
     <div id="ai-rules-content" className="pl-5">
       <p className="mt-3 max-w-[75ch] text-muted">
-        The AI proposed these rules about the file. Code checked each one against the data before using it, and the
-        numbers under a rule are what the file shows. A rule the data does not support is rejected and produces no
-        issue.
+        The AI proposed these rules about the file. Code checked each one against the data, and the numbers under a
+        rule are what the file shows. A rule the data does not support is rejected and produces no issue. A verified
+        rule is used to find issues, except a format: this version checks formats and does not use them.
       </p>
 
       <h3 className="mt-5 text-[13px] font-semibold">
@@ -150,7 +157,7 @@ function Rules({ contract }: { contract: VerifiedContract }) {
           {contract.rejected.map((rule, position) => (
             <li key={position} className="border-t border-hairline py-2">
               <p className="text-[13px] text-muted">{REJECTED_KIND[rule.rule] ?? rule.rule}</p>
-              <p className="font-mono text-[13px] [overflow-wrap:anywhere]">{rule.summary}</p>
+              <p className="font-mono text-[13px] [overflow-wrap:anywhere]">{rejectedSummary(rule)}</p>
               <p className="max-w-[75ch]">Rejected: {rule.reason}.</p>
             </li>
           ))}

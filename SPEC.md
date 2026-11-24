@@ -1,6 +1,22 @@
 # SPEC: AI Data Cleanup Assistant
 
-Version 1.3 · 2026-11-23 · Status: contract for the one-day build
+Version 1.4 · 2026-11-23 · Status: contract for the one-day build
+
+Changes in 1.4. Fixes from the independent review of session 4 and from the owner's hand check
+of live mode (`DECISIONS.md` §10, session 5):
+
+- §2: S3 is CUT. The request is not shown before it is sent; the upload screen says in words
+  what leaves the browser (F62).
+- §4.3 and §6.1: the comment of `buildContractRequest` and the first line of §6.1 no longer
+  say that the UI shows the request (F62).
+- §7.1: the sentence of the upload screen about what is sent (F62).
+- §7.3: an issue the user has decided is never removed or replaced by a later snapshot (F53).
+- §7.3: the "AI rules" panel says that formats are checked and not used (F64), and words a
+  rejected dependency like a verified one (F66).
+- §7.3: the bar says when the AI doubts a fix the user has accepted (F65).
+- §6.6: after "Run live", the page says "recorded" until a live contract arrives (F58).
+- §6.4: the page shows the opinions after each round of requests, and "Start over" stops the
+  rounds that have not started (F61).
 
 Changes in 1.3. Decisions of the owner for session 4 (integration) and readings already logged
 in `DECISIONS.md` §10:
@@ -96,7 +112,7 @@ MUST item meets its done criteria. CUT items are not built; they are listed in `
 | M8 | MUST | AI modes live, recorded and off; the app is useful with no API key (§6.6) |
 | S1 | SHOULD | AI adjudication of duplicate candidates and statistical flags (§6.4) |
 | S2 | SHOULD | Bulk action "accept all high-confidence fixes" |
-| S3 | SHOULD | "What is sent to the AI" panel, shown before the request is made |
+| S3 | CUT | "What is sent to the AI" panel, shown before the request is made. Not built: the upload screen says in words what leaves the browser (§7.1) |
 | S4 | SHOULD | Public deployment with the limits of §6.7 |
 | S5 | SHOULD | Detectors R6 (date format) and R7 (shape). C5 (format validators) is CUT |
 | S6 | CUT | Edit the proposed value by hand; remove a flagged row by hand. It needs a fifth input to `applyDecisions` and an exception to invariant 8 |
@@ -262,7 +278,7 @@ export function profileDataset(dataset: Dataset): Profile;
 /**
  * Builds the only description of the file that is sent to the model. It contains column
  * statistics, a capped list of values per column and a small sample of rows, never the whole
- * file. The UI shows this object to the user before sending it.
+ * file. The UI does not show this object (S3 is CUT); the upload screen says what is sent.
  */
 export function buildContractRequest(dataset: Dataset): ContractRequest;
 
@@ -496,7 +512,7 @@ column order are kept. Row ids in the change log are the original ones.
 
 ### 6.1 Contract request (what is sent)
 
-`buildContractRequest` returns, and the UI can show (S3):
+`buildContractRequest` returns (S3, the panel that would show it, is CUT):
 
 - per column: name, kind, counts, flags, numeric summary, the 5 most common shapes;
 - per column, values with their counts: every distinct value when there are 200 or fewer;
@@ -578,7 +594,9 @@ rejected rules, each with the reason. The UI shows both.
 
 Sent to the model: near-duplicate candidates (both rows in full) and R8 or C4 flags (the row
 in full, plus the column's numeric summary). At most 60 cases per analysis, strongest first,
-in requests of 10, three at a time.
+in requests of 10, three at a time. The page shows the opinions that have arrived after each
+round of three requests; when the user starts over, the rounds that have not started are not
+sent.
 
 The model answers `confirm`, `dismiss` or `unsure` with one sentence per case. Effects:
 
@@ -631,8 +649,10 @@ judgment is used without a check in code, so it can only change how prominent an
 - **off**: rules only, with a notice that explains how to enable AI.
 
 The bundled sample uses its recording by default, so the first run is instant and needs no
-key; a "Run live" action appears when the server is live. Uploaded files use live mode when
-available. Recordings are written only by `npm run eval:live`.
+key; a "Run live" action appears when the server is live. After "Run live", the recorded
+analysis, with its mode, model and date, stays on screen until a live contract arrives; a
+failed request leaves it there with a notice and a retry button. Uploaded files use live mode
+when available. Recordings are written only by `npm run eval:live`.
 
 A file is matched by its bytes, not by how it was loaded. Its mode is decided in this order:
 the recording for its SHA-256, if there is one; live, if the server is live; otherwise off. A
@@ -665,6 +685,11 @@ and warnings shown in plain language. A file that is not UTF-8 is refused, with 
 says how to fix it: save it as "CSV UTF-8" and upload it again. Reading it anyway would put
 replacement characters into the cleaned file.
 
+The screen says in one sentence what leaves the browser. When the server has an API key: a
+description of each column with a capped list of its values, up to 20 sample rows (§6.1) and
+the full rows of the ambiguous cases (§6.4) go to the model. Without a key: only the SHA-256
+of the file is sent to the server (§6.6).
+
 ### 7.2 Analysing
 
 Progress by stage, with counts: parsed rows, rule issues, contract (proposed, verified,
@@ -689,7 +714,21 @@ rejected), adjudication. The AI mode is visible at all times.
 - An issue on a cell of a row that an accepted duplicate fix removes says so, and names the
   row that is kept (§5.6).
 - A group shows its first 50 issues and a "show more" control.
-- "AI rules" panel: the verified contract and the rejected rules with their reasons.
+- "AI rules" panel: the verified contract and the rejected rules with their reasons. A format
+  that passed its check (§6.3) is a verified rule and is counted as one. Its heading says that
+  formats are checked against the file and not used to find issues in this version (C5 is CUT).
+  A rejected dependency is worded like a verified one: "a decides b".
+- When the AI's opinion on a fix the user has accepted is "probably not a problem", a notice
+  next to the bar's counts says how many such fixes there are and names their groups. It
+  changes no decision, and it goes away when none of those fixes is left accepted.
+- An issue the user has decided is never removed or replaced by a later snapshot: the
+  contract, each batch of AI opinions, a retry or "Run live". When a snapshot arrives without
+  a decided issue that is on screen, that issue is carried into the new analysis with its
+  decision, and the issue of the new snapshot that took its place is left out: the one on the
+  same target that was not on screen before. The target is the cell or, for a row removal,
+  the row removed. If the user undoes the decision, the next snapshot is free to replace the
+  issue. A carried issue keeps its source, its reason and its AI opinion, and the downloads
+  treat it like any other issue.
 - A persistent bar: counts of accepted, rejected and pending, and the two downloads of §7.4.
   Each download is built from the decisions as they are at the click. When the two files
   downloaded were built from different decisions, the bar says so and asks to download both

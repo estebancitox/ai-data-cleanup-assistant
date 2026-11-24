@@ -33,6 +33,17 @@ export function isSetAside(issue: Issue, decisions: Decisions, restored: Readonl
   return issue.verdict?.value === 'dismiss' && decisions[issue.id] === undefined && !restored.has(issue.id);
 }
 
+/**
+ * SPEC §7.3: the accepted fixes that the AI judged "probably not a problem". The opinion can
+ * arrive after the decision, and it changes none: the fix stays accepted until the user says
+ * otherwise.
+ */
+export function doubtedAcceptedFixes(issues: Issue[], decisions: Decisions): Issue[] {
+  return issues.filter(
+    (issue) => issue.fix !== undefined && issue.verdict?.value === 'dismiss' && decisions[issue.id] === 'accepted',
+  );
+}
+
 export interface Counts {
   pending: number;
   accepted: number;

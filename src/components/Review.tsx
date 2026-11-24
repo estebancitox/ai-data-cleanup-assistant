@@ -13,13 +13,14 @@ import {
   countStatuses,
   decide,
   decideMany,
+  doubtedAcceptedFixes,
   isSetAside,
   matchesFilters,
   pendingHighConfidenceFixes,
   removedRows,
   sameDecisions,
 } from "../lib/decisions";
-import { plural } from "../lib/describe";
+import { describeGroup, plural } from "../lib/describe";
 import { saveFile } from "../lib/download";
 import { buildExport } from "../lib/export";
 import type { LoadedFile } from "../lib/load";
@@ -75,13 +76,12 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
   const [restored, setRestored] = useState<ReadonlySet<string>>(new Set());
 
   // What the AI dismissed is set aside; everything below counts and groups the rest.
-  const setAside = analysis.issues.filter((issue) => isSetAside(issue, decisions, restored));
-  const setAsideKey = setAside.map((issue) => issue.id).join("\n");
-  const issues = useMemo(() => {
-    if (setAsideKey === "") return analysis.issues;
-    const ids = new Set(setAsideKey.split("\n"));
-    return analysis.issues.filter((issue) => !ids.has(issue.id));
-  }, [analysis, setAsideKey]);
+  const { setAside, issues } = useMemo(() => {
+    const setAside = analysis.issues.filter((issue) => isSetAside(issue, decisions, restored));
+    if (setAside.length === 0) return { setAside, issues: analysis.issues };
+    const ids = new Set(setAside.map((issue) => issue.id));
+    return { setAside, issues: analysis.issues.filter((issue) => !ids.has(issue.id)) };
+  }, [analysis, decisions, restored]);
 
   const groups = useMemo(() => byType(groupIssues(issues)), [issues]);
   const rowsById = useMemo(() => new Map(dataset.rows.map((row) => [row.id, row])), [dataset]);
@@ -94,6 +94,12 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
   // SPEC S2. Like every bulk action it reaches only what is pending and on screen.
   const sureFixes = pendingHighConfidenceFixes(visible.flatMap((entry) => entry.shown), decisions);
   const removed = removedRows(issues, decisions);
+  // SPEC §7.3: an opinion can arrive after the user accepted the fix; the bar says so.
+  const doubted = doubtedAcceptedFixes(issues, decisions);
+  const doubtedIds = new Set(doubted.map((issue) => issue.id));
+  const doubtedGroups = groups
+    .filter((group) => group.issues.some((issue) => doubtedIds.has(issue.id)))
+    .map((group) => describeGroup(group).title);
 
   // One step of undo, for bulk actions only: the decisions as they were before the last one.
   // Any other decision ends it. There is no history beyond this step.
@@ -224,6 +230,7 @@ export function Review({ file, snapshot, decisions, onDecisions, onStartOver }: 
 
       <ReviewBar
         counts={totals}
+        doubted={doubted.length > 0 ? { count: doubted.length, groups: doubtedGroups } : undefined}
         lastBulk={lastBulk ?? undefined}
         onUndo={undoLastBulk}
         last={downloads.last}

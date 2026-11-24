@@ -100,7 +100,7 @@ const byteLength = (request: ContractRequest) => new TextEncoder().encode(JSON.s
 /**
  * Builds the only description of the file that is sent to the model. It contains column
  * statistics, a capped list of values per column and a small sample of rows, never the whole
- * file. The UI shows this object to the user before sending it.
+ * file. The UI does not show this object (S3 is CUT); the upload screen says what is sent.
  *
  * If the description is larger than 200 KB, the number of distinct values a column may list
  * in full is halved until it fits, down to 20. A file that still does not fit is returned as

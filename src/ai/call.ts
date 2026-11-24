@@ -61,7 +61,9 @@ export function modelId(): string {
 /** The client for live mode, or null when the server has no API key. */
 export function createClient(): ModelClient | null {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  return apiKey ? new Anthropic({ apiKey, timeout: CALL_SETTINGS.timeoutMs, maxRetries: 0 }) : null;
+  // Logging is off: at the level "debug" the SDK prints request bodies, which hold rows of the
+  // user's file, and the environment variable ANTHROPIC_LOG would otherwise choose the level.
+  return apiKey ? new Anthropic({ apiKey, timeout: CALL_SETTINGS.timeoutMs, maxRetries: 0, logLevel: 'off' }) : null;
 }
 
 function describeError(error: unknown): string {

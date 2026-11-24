@@ -81,6 +81,11 @@ export function Upload({ reading, error, onFile, onSample }: UploadProps) {
           <span className="font-mono text-ink">{UPLOAD_LIMITS.columns}</span> columns, saved as UTF-8. The file is
           read in your browser and the original is never modified.
         </p>
+        <p className="mt-2 max-w-[80ch] text-[13px] text-muted">
+          What leaves the browser: when the server has an API key, a description of each column with a capped list of
+          its values, up to 20 sample rows and the full rows of the ambiguous cases go to the AI model; without a key,
+          only the SHA-256 of the file is sent to this server.
+        </p>
       </div>
 
       {error !== undefined && (
