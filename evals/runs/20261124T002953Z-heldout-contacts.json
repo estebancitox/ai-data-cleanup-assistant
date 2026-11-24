@@ -1,0 +1,1441 @@
+{
+  "tool": "ai-data-cleanup-assistant",
+  "generatedAt": "2026-11-24T00:29:53.113Z",
+  "mode": "heldout",
+  "dataset": "contacts",
+  "model": "claude-sonnet-5-5",
+  "sha256": "1e83390562c3b52978f6d951737802e8dedcfcb30ca9ada7b1db183fbb521d7e",
+  "recordedAt": "2026-11-24T00:30:05.835Z",
+  "calls": [
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 9650,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 15918,
+      "outputTokens": 1438,
+      "stopReason": "end_turn",
+      "failure": null
+    },
+    {
+      "attempt": 1,
+      "ok": true,
+      "latencyMs": 2785,
+      "model": "claude-sonnet-5-5",
+      "inputTokens": 1365,
+      "outputTokens": 87,
+      "stopReason": "end_turn",
+      "failure": null
+    }
+  ],
+  "rows": 310,
+  "analysisMs": 167,
+  "score": {
+    "issues": 99,
+    "dismissed": 0,
+    "truePositives": 86,
+    "falsePositives": 11,
+    "extra": 2,
+    "falseNegatives": 13,
+    "precision": 0.8865979381443299,
+    "recall": 0.8686868686868687,
+    "recallByType": {
+      "inconsistent": {
+        "located": 49,
+        "total": 49
+      },
+      "suspicious": {
+        "located": 11,
+        "total": 18
+      },
+      "missing": {
+        "located": 22,
+        "total": 22
+      },
+      "duplicate": {
+        "located": 4,
+        "total": 10
+      }
+    },
+    "recallByKind": {
+      "case-whitespace": {
+        "located": 12,
+        "total": 12
+      },
+      "semantic-variant": {
+        "located": 12,
+        "total": 12
+      },
+      "outlier-typo": {
+        "located": 3,
+        "total": 5
+      },
+      "invalid-format": {
+        "located": 2,
+        "total": 6
+      },
+      "date-format-ambiguous": {
+        "located": 2,
+        "total": 2
+      },
+      "impossible-value": {
+        "located": 3,
+        "total": 4
+      },
+      "blank-derivable": {
+        "located": 7,
+        "total": 7
+      },
+      "placeholder": {
+        "located": 6,
+        "total": 6
+      },
+      "number-format": {
+        "located": 6,
+        "total": 6
+      },
+      "near-duplicate": {
+        "located": 0,
+        "total": 6
+      },
+      "junk-record": {
+        "located": 3,
+        "total": 3
+      },
+      "date-format": {
+        "located": 6,
+        "total": 6
+      },
+      "cross-field": {
+        "located": 5,
+        "total": 5
+      },
+      "blank": {
+        "located": 7,
+        "total": 7
+      },
+      "phone-format": {
+        "located": 6,
+        "total": 6
+      },
+      "exact-duplicate": {
+        "located": 4,
+        "total": 4
+      },
+      "placeholder-derivable": {
+        "located": 2,
+        "total": 2
+      }
+    },
+    "byIssueType": {
+      "inconsistent": {
+        "truePositives": 57,
+        "falsePositives": 4,
+        "extra": 0
+      },
+      "missing": {
+        "truePositives": 21,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "suspicious": {
+        "truePositives": 4,
+        "falsePositives": 7,
+        "extra": 2
+      },
+      "duplicate": {
+        "truePositives": 4,
+        "falsePositives": 0,
+        "extra": 0
+      }
+    },
+    "byDetector": {
+      "whitespace": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "canonical-value": {
+        "truePositives": 13,
+        "falsePositives": 4,
+        "extra": 0
+      },
+      "dependency": {
+        "truePositives": 24,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "date-format": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "placeholder": {
+        "truePositives": 5,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "flagged-value": {
+        "truePositives": 3,
+        "falsePositives": 7,
+        "extra": 2
+      },
+      "empty": {
+        "truePositives": 7,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "case-variant": {
+        "truePositives": 4,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "shape": {
+        "truePositives": 8,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "range": {
+        "truePositives": 1,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "number-format": {
+        "truePositives": 1,
+        "falsePositives": 0,
+        "extra": 0
+      },
+      "exact-duplicate": {
+        "truePositives": 4,
+        "falsePositives": 0,
+        "extra": 0
+      }
+    },
+    "confusion": {
+      "inconsistent": {
+        "inconsistent": 49
+      },
+      "suspicious": {
+        "inconsistent": 7,
+        "suspicious": 4
+      },
+      "missing": {
+        "missing": 21,
+        "inconsistent": 1
+      },
+      "duplicate": {
+        "duplicate": 4
+      }
+    },
+    "fixAccuracy": {
+      "correct": 63,
+      "scored": 63
+    },
+    "fabricatedFixes": [],
+    "fixesOnCleanData": [
+      "canonical-value:35:first_name:set-115d02b7",
+      "canonical-value:66:first_name:set-60a878b0",
+      "canonical-value:146:last_name:set-a8340585",
+      "canonical-value:277:last_name:set-c4c958be"
+    ],
+    "trapsHit": [],
+    "wronglyDismissed": [],
+    "located": [
+      {
+        "errorId": "E001",
+        "issueId": "whitespace:1:state:set-81da2487"
+      },
+      {
+        "errorId": "E002",
+        "issueId": "canonical-value:6:lead_source:set-8b1eaba0"
+      },
+      {
+        "errorId": "E003",
+        "issueId": "dependency:8:annual_revenue_usd:set-d2479933"
+      },
+      {
+        "errorId": "E005",
+        "issueId": "date-format:15:signup_date:set-2f84cbf5"
+      },
+      {
+        "errorId": "E007",
+        "issueId": "dependency:24:state:set-86e4b9c2"
+      },
+      {
+        "errorId": "E008",
+        "issueId": "placeholder:26:notes:set-811c9dc5"
+      },
+      {
+        "errorId": "E009",
+        "issueId": "canonical-value:27:country:set-65f39059"
+      },
+      {
+        "errorId": "E010",
+        "issueId": "dependency:28:annual_revenue_usd:set-efa8f107"
+      },
+      {
+        "errorId": "E011",
+        "issueId": "whitespace:32:city:set-4de8c252"
+      },
+      {
+        "errorId": "E015",
+        "issueId": "flagged-value:36:first_name:flag"
+      },
+      {
+        "errorId": "E016",
+        "issueId": "flagged-value:39:first_name:flag"
+      },
+      {
+        "errorId": "E017",
+        "issueId": "date-format:41:signup_date:set-1eb948a4"
+      },
+      {
+        "errorId": "E018",
+        "issueId": "dependency:44:annual_revenue_usd:set-d2479933"
+      },
+      {
+        "errorId": "E019",
+        "issueId": "date-format:48:signup_date:set-e44cb866"
+      },
+      {
+        "errorId": "E020",
+        "issueId": "canonical-value:50:state:set-81da2487"
+      },
+      {
+        "errorId": "E021",
+        "issueId": "flagged-value:52:last_name:flag"
+      },
+      {
+        "errorId": "E022",
+        "issueId": "date-format:55:signup_date:set-1214d3af"
+      },
+      {
+        "errorId": "E023",
+        "issueId": "dependency:64:annual_revenue_usd:set-787d0def"
+      },
+      {
+        "errorId": "E025",
+        "issueId": "dependency:73:annual_revenue_usd:set-4a616514"
+      },
+      {
+        "errorId": "E027",
+        "issueId": "whitespace:78:lead_source:set-72645431"
+      },
+      {
+        "errorId": "E028",
+        "issueId": "dependency:83:state:set-5fd0f4a5"
+      },
+      {
+        "errorId": "E029",
+        "issueId": "canonical-value:86:lead_source:set-72645431"
+      },
+      {
+        "errorId": "E030",
+        "issueId": "empty:89:email:flag"
+      },
+      {
+        "errorId": "E031",
+        "issueId": "dependency:94:state:set-22f56577"
+      },
+      {
+        "errorId": "E032",
+        "issueId": "dependency:95:annual_revenue_usd:set-787d0def"
+      },
+      {
+        "errorId": "E033",
+        "issueId": "canonical-value:97:lead_source:set-72645431"
+      },
+      {
+        "errorId": "E034",
+        "issueId": "case-variant:99:city:set-e998723b"
+      },
+      {
+        "errorId": "E035",
+        "issueId": "shape:101:phone:flag"
+      },
+      {
+        "errorId": "E036",
+        "issueId": "whitespace:103:lead_source:set-d02b533f"
+      },
+      {
+        "errorId": "E037",
+        "issueId": "dependency:104:annual_revenue_usd:set-4a616514"
+      },
+      {
+        "errorId": "E038",
+        "issueId": "date-format:106:signup_date:set-977490a8"
+      },
+      {
+        "errorId": "E039",
+        "issueId": "whitespace:110:country:set-65f39059"
+      },
+      {
+        "errorId": "E040",
+        "issueId": "dependency:112:annual_revenue_usd:set-534e458a"
+      },
+      {
+        "errorId": "E041",
+        "issueId": "dependency:119:annual_revenue_usd:set-50e3b770"
+      },
+      {
+        "errorId": "E042",
+        "issueId": "canonical-value:120:country:set-65f39059"
+      },
+      {
+        "errorId": "E043",
+        "issueId": "shape:121:phone:flag"
+      },
+      {
+        "errorId": "E044",
+        "issueId": "empty:123:phone:flag"
+      },
+      {
+        "errorId": "E045",
+        "issueId": "dependency:128:state:set-5ee8f7f8"
+      },
+      {
+        "errorId": "E046",
+        "issueId": "date-format:129:signup_date:set-cab90f46"
+      },
+      {
+        "errorId": "E049",
+        "issueId": "dependency:133:annual_revenue_usd:set-baded2c3"
+      },
+      {
+        "errorId": "E050",
+        "issueId": "range:134:signup_date:flag"
+      },
+      {
+        "errorId": "E051",
+        "issueId": "dependency:139:annual_revenue_usd:set-335a0c79"
+      },
+      {
+        "errorId": "E052",
+        "issueId": "dependency:140:state:set-7ce4aa04"
+      },
+      {
+        "errorId": "E053",
+        "issueId": "empty:141:email:flag"
+      },
+      {
+        "errorId": "E054",
+        "issueId": "number-format:142:annual_revenue_usd:set-d24ee4ab"
+      },
+      {
+        "errorId": "E055",
+        "issueId": "empty:143:job_title:flag"
+      },
+      {
+        "errorId": "E056",
+        "issueId": "canonical-value:144:country:set-65f39059"
+      },
+      {
+        "errorId": "E057",
+        "issueId": "empty:145:phone:flag"
+      },
+      {
+        "errorId": "E058",
+        "issueId": "exact-duplicate:147+196::del-196"
+      },
+      {
+        "errorId": "E059",
+        "issueId": "shape:150:phone:flag"
+      },
+      {
+        "errorId": "E061",
+        "issueId": "dependency:164:state:set-5fd0f4a5"
+      },
+      {
+        "errorId": "E062",
+        "issueId": "canonical-value:171:lead_source:set-8b1eaba0"
+      },
+      {
+        "errorId": "E063",
+        "issueId": "shape:173:phone:flag"
+      },
+      {
+        "errorId": "E064",
+        "issueId": "empty:181:phone:flag"
+      },
+      {
+        "errorId": "E065",
+        "issueId": "exact-duplicate:184+204::del-204"
+      },
+      {
+        "errorId": "E066",
+        "issueId": "shape:186:phone:flag"
+      },
+      {
+        "errorId": "E067",
+        "issueId": "placeholder:187:notes:set-811c9dc5"
+      },
+      {
+        "errorId": "E068",
+        "issueId": "exact-duplicate:188+234::del-234"
+      },
+      {
+        "errorId": "E069",
+        "issueId": "case-variant:193:lead_source:set-72645431"
+      },
+      {
+        "errorId": "E070",
+        "issueId": "dependency:194:state:set-22f56577"
+      },
+      {
+        "errorId": "E071",
+        "issueId": "case-variant:199:state:set-43dfd31b"
+      },
+      {
+        "errorId": "E072",
+        "issueId": "dependency:209:state:set-86e4b9c2"
+      },
+      {
+        "errorId": "E074",
+        "issueId": "shape:214:phone:flag"
+      },
+      {
+        "errorId": "E075",
+        "issueId": "exact-duplicate:218+227::del-227"
+      },
+      {
+        "errorId": "E076",
+        "issueId": "dependency:223:annual_revenue_usd:set-50e3b770"
+      },
+      {
+        "errorId": "E077",
+        "issueId": "canonical-value:224:country:set-65f39059"
+      },
+      {
+        "errorId": "E078",
+        "issueId": "canonical-value:229:state:set-3ff7d1b5"
+      },
+      {
+        "errorId": "E079",
+        "issueId": "whitespace:247:city:set-e998723b"
+      },
+      {
+        "errorId": "E080",
+        "issueId": "canonical-value:250:country:set-65f39059"
+      },
+      {
+        "errorId": "E081",
+        "issueId": "date-format:254:signup_date:set-627d2ac4"
+      },
+      {
+        "errorId": "E082",
+        "issueId": "placeholder:260:job_title:set-811c9dc5"
+      },
+      {
+        "errorId": "E083",
+        "issueId": "placeholder:261:job_title:set-811c9dc5"
+      },
+      {
+        "errorId": "E084",
+        "issueId": "shape:265:phone:flag"
+      },
+      {
+        "errorId": "E085",
+        "issueId": "canonical-value:268:state:set-30f57b81"
+      },
+      {
+        "errorId": "E086",
+        "issueId": "shape:274:phone:flag"
+      },
+      {
+        "errorId": "E088",
+        "issueId": "whitespace:276:country:set-65f39059"
+      },
+      {
+        "errorId": "E089",
+        "issueId": "dependency:280:annual_revenue_usd:set-39dbca4e"
+      },
+      {
+        "errorId": "E090",
+        "issueId": "empty:282:job_title:flag"
+      },
+      {
+        "errorId": "E091",
+        "issueId": "date-format:284:signup_date:set-9b2fc0f0"
+      },
+      {
+        "errorId": "E093",
+        "issueId": "placeholder:288:phone:set-811c9dc5"
+      },
+      {
+        "errorId": "E094",
+        "issueId": "canonical-value:289:state:set-81da2487"
+      },
+      {
+        "errorId": "E095",
+        "issueId": "dependency:291:state:set-81da2487"
+      },
+      {
+        "errorId": "E096",
+        "issueId": "dependency:293:state:set-3ff7d1b5"
+      },
+      {
+        "errorId": "E097",
+        "issueId": "dependency:295:annual_revenue_usd:set-baded2c3"
+      },
+      {
+        "errorId": "E098",
+        "issueId": "case-variant:296:lead_source:set-72645431"
+      },
+      {
+        "errorId": "E099",
+        "issueId": "whitespace:304:state:set-81da2487"
+      }
+    ],
+    "missed": [
+      "E004",
+      "E006",
+      "E012",
+      "E013",
+      "E014",
+      "E024",
+      "E026",
+      "E047",
+      "E048",
+      "E060",
+      "E073",
+      "E087",
+      "E092"
+    ],
+    "falsePositiveIssues": [
+      {
+        "issueId": "flagged-value:34:last_name:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          34
+        ],
+        "column": "last_name"
+      },
+      {
+        "issueId": "flagged-value:34:notes:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          34
+        ],
+        "column": "notes"
+      },
+      {
+        "issueId": "canonical-value:35:first_name:set-115d02b7",
+        "detector": "canonical-value",
+        "rowIds": [
+          35
+        ],
+        "column": "first_name"
+      },
+      {
+        "issueId": "flagged-value:35:notes:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          35
+        ],
+        "column": "notes"
+      },
+      {
+        "issueId": "canonical-value:66:first_name:set-60a878b0",
+        "detector": "canonical-value",
+        "rowIds": [
+          66
+        ],
+        "column": "first_name"
+      },
+      {
+        "issueId": "flagged-value:66:notes:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          66
+        ],
+        "column": "notes"
+      },
+      {
+        "issueId": "flagged-value:131:first_name:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          131
+        ],
+        "column": "first_name"
+      },
+      {
+        "issueId": "canonical-value:146:last_name:set-a8340585",
+        "detector": "canonical-value",
+        "rowIds": [
+          146
+        ],
+        "column": "last_name"
+      },
+      {
+        "issueId": "flagged-value:146:notes:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          146
+        ],
+        "column": "notes"
+      },
+      {
+        "issueId": "canonical-value:277:last_name:set-c4c958be",
+        "detector": "canonical-value",
+        "rowIds": [
+          277
+        ],
+        "column": "last_name"
+      },
+      {
+        "issueId": "flagged-value:277:notes:flag",
+        "detector": "flagged-value",
+        "rowIds": [
+          277
+        ],
+        "column": "notes"
+      }
+    ]
+  },
+  "thresholds": [
+    {
+      "id": "T2",
+      "check": "overall precision",
+      "measured": "0.887",
+      "threshold": "0.90 or more",
+      "pass": false
+    },
+    {
+      "id": "T2",
+      "check": "overall recall",
+      "measured": "0.869",
+      "threshold": "0.80 or more",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fabricated fixes",
+      "measured": "0",
+      "threshold": "0",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fix accuracy",
+      "measured": "1.000 (63 of 63)",
+      "threshold": "0.95 or more",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "check": "fixes on clean data",
+      "measured": "4",
+      "threshold": "2 or fewer",
+      "pass": false
+    }
+  ],
+  "contract": {
+    "proposed": {
+      "columns": [
+        {
+          "name": "contact_id",
+          "meaning": "Contact identifier",
+          "role": "identifier",
+          "format": "none"
+        },
+        {
+          "name": "first_name",
+          "meaning": "Contact's first name",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "last_name",
+          "meaning": "Contact's last name",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "email",
+          "meaning": "Contact's email address",
+          "role": "other",
+          "format": "email"
+        },
+        {
+          "name": "phone",
+          "meaning": "Contact's phone number",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "company",
+          "meaning": "Company the contact works for",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "job_title",
+          "meaning": "Contact's job title",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "city",
+          "meaning": "City of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "state",
+          "meaning": "US state of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "country",
+          "meaning": "Country of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "lead_source",
+          "meaning": "Channel the lead came from",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "signup_date",
+          "meaning": "Date the contact signed up",
+          "role": "date",
+          "format": "none"
+        },
+        {
+          "name": "annual_revenue_usd",
+          "meaning": "Company annual revenue in US dollars",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "notes",
+          "meaning": "Sales notes about the contact",
+          "role": "free-text",
+          "format": "none"
+        }
+      ],
+      "missingTokens": [
+        {
+          "column": "job_title",
+          "token": "unknown"
+        }
+      ],
+      "canonicalGroups": [
+        {
+          "column": "country",
+          "values": [
+            "US",
+            "USA",
+            "United States",
+            "U.S."
+          ],
+          "reason": "All are different spellings of the United States."
+        },
+        {
+          "column": "lead_source",
+          "values": [
+            "Web",
+            "Website"
+          ],
+          "reason": "Website is another way of writing Web."
+        },
+        {
+          "column": "lead_source",
+          "values": [
+            "Referral",
+            "Refferal",
+            "Referal"
+          ],
+          "reason": "Misspellings of Referral."
+        },
+        {
+          "column": "state",
+          "values": [
+            "CO",
+            "Colorado",
+            "C0"
+          ],
+          "reason": "All refer to Colorado."
+        },
+        {
+          "column": "state",
+          "values": [
+            "TX",
+            "Texas"
+          ],
+          "reason": "Full name of Texas."
+        },
+        {
+          "column": "state",
+          "values": [
+            "WA",
+            "Wash."
+          ],
+          "reason": "Abbreviation of Washington."
+        },
+        {
+          "column": "first_name",
+          "values": [
+            "Kenji",
+            "Kenjie"
+          ],
+          "reason": "Kenjie is a misspelling of Kenji."
+        },
+        {
+          "column": "first_name",
+          "values": [
+            "Diego",
+            "Dieg"
+          ],
+          "reason": "Dieg is a truncated Diego."
+        },
+        {
+          "column": "last_name",
+          "values": [
+            "Abbott",
+            "Abbottn"
+          ],
+          "reason": "Abbottn is a typo of Abbott."
+        },
+        {
+          "column": "last_name",
+          "values": [
+            "Castillo",
+            "Castillos"
+          ],
+          "reason": "Castillos is a typo of Castillo."
+        }
+      ],
+      "suspiciousValues": [
+        {
+          "column": "first_name",
+          "value": "Test",
+          "reason": "Looks like test data."
+        },
+        {
+          "column": "first_name",
+          "value": "asdf",
+          "reason": "Keyboard mashing, not a name."
+        },
+        {
+          "column": "first_name",
+          "value": "S.",
+          "reason": "Just an initial, not a real first name."
+        },
+        {
+          "column": "last_name",
+          "value": "X",
+          "reason": "Placeholder, not a real surname."
+        },
+        {
+          "column": "last_name",
+          "value": "User",
+          "reason": "Placeholder name."
+        },
+        {
+          "column": "last_name",
+          "value": "qwer",
+          "reason": "Keyboard mashing, not a name."
+        },
+        {
+          "column": "last_name",
+          "value": "Doe",
+          "reason": "Typical placeholder surname."
+        },
+        {
+          "column": "notes",
+          "value": "Imported again from the event badge scan.",
+          "reason": "Looks like an import leftover that repeats across rows."
+        }
+      ],
+      "ranges": [
+        {
+          "column": "annual_revenue_usd",
+          "min": "0",
+          "max": "",
+          "reason": "Revenue in dollars cannot be negative here."
+        },
+        {
+          "column": "signup_date",
+          "min": "2000-01-01",
+          "max": "",
+          "reason": "Signup dates cannot be implausibly old."
+        }
+      ],
+      "dependencies": [
+        {
+          "determinant": "company",
+          "dependent": "email",
+          "reason": "Email domain follows the company, so each company has consistent domain."
+        },
+        {
+          "determinant": "city",
+          "dependent": "state",
+          "reason": "Each city is in one state."
+        },
+        {
+          "determinant": "company",
+          "dependent": "annual_revenue_usd",
+          "reason": "Revenue belongs to the company, so it should be the same on every row."
+        },
+        {
+          "determinant": "contact_id",
+          "dependent": "email",
+          "reason": "One contact has one email address."
+        }
+      ]
+    },
+    "verified": {
+      "columns": [
+        {
+          "name": "contact_id",
+          "meaning": "Contact identifier",
+          "role": "identifier",
+          "format": "none"
+        },
+        {
+          "name": "first_name",
+          "meaning": "Contact's first name",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "last_name",
+          "meaning": "Contact's last name",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "email",
+          "meaning": "Contact's email address",
+          "role": "other",
+          "format": "email"
+        },
+        {
+          "name": "phone",
+          "meaning": "Contact's phone number",
+          "role": "other",
+          "format": "none"
+        },
+        {
+          "name": "company",
+          "meaning": "Company the contact works for",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "job_title",
+          "meaning": "Contact's job title",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "city",
+          "meaning": "City of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "state",
+          "meaning": "US state of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "country",
+          "meaning": "Country of the contact",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "lead_source",
+          "meaning": "Channel the lead came from",
+          "role": "category",
+          "format": "none"
+        },
+        {
+          "name": "signup_date",
+          "meaning": "Date the contact signed up",
+          "role": "date",
+          "format": "none"
+        },
+        {
+          "name": "annual_revenue_usd",
+          "meaning": "Company annual revenue in US dollars",
+          "role": "measure",
+          "format": "none"
+        },
+        {
+          "name": "notes",
+          "meaning": "Sales notes about the contact",
+          "role": "free-text",
+          "format": "none"
+        }
+      ],
+      "missingTokens": [
+        {
+          "column": "job_title",
+          "token": "unknown",
+          "support": "1 of 310 cells hold this token"
+        }
+      ],
+      "canonicalGroups": [
+        {
+          "column": "country",
+          "canonical": "US",
+          "variants": [
+            "USA",
+            "United States",
+            "U.S."
+          ],
+          "reason": "All are different spellings of the United States.",
+          "support": "\"US\" fills 305 cells; the other spellings fill 5"
+        },
+        {
+          "column": "lead_source",
+          "canonical": "Web",
+          "variants": [
+            "Website"
+          ],
+          "reason": "Website is another way of writing Web.",
+          "support": "\"Web\" fills 113 cells; the other spellings fill 2"
+        },
+        {
+          "column": "lead_source",
+          "canonical": "Referral",
+          "variants": [
+            "Refferal",
+            "Referal"
+          ],
+          "reason": "Misspellings of Referral.",
+          "support": "\"Referral\" fills 59 cells; the other spellings fill 2"
+        },
+        {
+          "column": "state",
+          "canonical": "CO",
+          "variants": [
+            "C0",
+            "Colorado"
+          ],
+          "reason": "All refer to Colorado.",
+          "support": "\"CO\" fills 55 cells; the other spellings fill 2"
+        },
+        {
+          "column": "state",
+          "canonical": "TX",
+          "variants": [
+            "Texas"
+          ],
+          "reason": "Full name of Texas.",
+          "support": "\"TX\" fills 13 cells; the other spellings fill 1"
+        },
+        {
+          "column": "state",
+          "canonical": "WA",
+          "variants": [
+            "Wash."
+          ],
+          "reason": "Abbreviation of Washington.",
+          "support": "\"WA\" fills 16 cells; the other spellings fill 1"
+        },
+        {
+          "column": "first_name",
+          "canonical": "Kenji",
+          "variants": [
+            "Kenjie"
+          ],
+          "reason": "Kenjie is a misspelling of Kenji.",
+          "support": "\"Kenji\" fills 9 cells; the other spellings fill 1"
+        },
+        {
+          "column": "first_name",
+          "canonical": "Diego",
+          "variants": [
+            "Dieg"
+          ],
+          "reason": "Dieg is a truncated Diego.",
+          "support": "\"Diego\" fills 7 cells; the other spellings fill 1"
+        },
+        {
+          "column": "last_name",
+          "canonical": "Abbott",
+          "variants": [
+            "Abbottn"
+          ],
+          "reason": "Abbottn is a typo of Abbott.",
+          "support": "\"Abbott\" fills 7 cells; the other spellings fill 1"
+        },
+        {
+          "column": "last_name",
+          "canonical": "Castillo",
+          "variants": [
+            "Castillos"
+          ],
+          "reason": "Castillos is a typo of Castillo.",
+          "support": "\"Castillo\" fills 7 cells; the other spellings fill 1"
+        }
+      ],
+      "suspiciousValues": [
+        {
+          "column": "first_name",
+          "value": "Test",
+          "reason": "Looks like test data.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "first_name",
+          "value": "asdf",
+          "reason": "Keyboard mashing, not a name.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "first_name",
+          "value": "S.",
+          "reason": "Just an initial, not a real first name.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "last_name",
+          "value": "X",
+          "reason": "Placeholder, not a real surname.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "last_name",
+          "value": "User",
+          "reason": "Placeholder name.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "last_name",
+          "value": "qwer",
+          "reason": "Keyboard mashing, not a name.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "last_name",
+          "value": "Doe",
+          "reason": "Typical placeholder surname.",
+          "support": "1 of 310 rows hold this value"
+        },
+        {
+          "column": "notes",
+          "value": "Imported again from the event badge scan.",
+          "reason": "Looks like an import leftover that repeats across rows.",
+          "support": "5 of 310 rows hold this value"
+        }
+      ],
+      "ranges": [
+        {
+          "column": "annual_revenue_usd",
+          "min": "0",
+          "max": "",
+          "reason": "Revenue in dollars cannot be negative here.",
+          "support": "305 of 306 values are inside"
+        },
+        {
+          "column": "signup_date",
+          "min": "2000-01-01",
+          "max": "",
+          "reason": "Signup dates cannot be implausibly old.",
+          "support": "307 of 308 values are inside"
+        }
+      ],
+      "dependencies": [
+        {
+          "determinant": "city",
+          "dependent": "state",
+          "reason": "Each city is in one state.",
+          "support": "300 of 305 rows (98.4%) have the most common state for their city; 305 rows are in groups of 3 or more"
+        },
+        {
+          "determinant": "company",
+          "dependent": "annual_revenue_usd",
+          "reason": "Revenue belongs to the company, so it should be the same on every row.",
+          "support": "293 of 306 rows (95.8%) have the most common annual_revenue_usd for their company; 306 rows are in groups of 3 or more"
+        }
+      ],
+      "rejected": [
+        {
+          "rule": "dependency",
+          "summary": "company -> email",
+          "reason": "12.3% of the rows agree with their group; 95.0% are needed"
+        },
+        {
+          "rule": "dependency",
+          "summary": "contact_id -> email",
+          "reason": "0 rows are in groups of 3 or more; 20 are needed"
+        }
+      ]
+    }
+  },
+  "adjudication": {
+    "cases": 1,
+    "confirm": 1,
+    "dismiss": 0,
+    "unsure": 0,
+    "unanswered": 0
+  },
+  "verdicts": [
+    {
+      "issueId": "range:134:signup_date:flag",
+      "value": "confirm",
+      "reason": "1900-01-01 is a typical placeholder date, and the notes mention following up next quarter and a 14-seat deal, which a signup over a century ago cannot fit."
+    }
+  ],
+  "r2": {
+    "threshold": 0.9,
+    "planted": [
+      {
+        "id": "E013",
+        "kind": "near-duplicate",
+        "rows": [
+          34,
+          107
+        ],
+        "similarity": 0.8212858695089709,
+        "reported": false
+      },
+      {
+        "id": "E014",
+        "kind": "near-duplicate",
+        "rows": [
+          35,
+          178
+        ],
+        "similarity": 0.8372213120364783,
+        "reported": false
+      },
+      {
+        "id": "E024",
+        "kind": "near-duplicate",
+        "rows": [
+          66,
+          244
+        ],
+        "similarity": 0.8385746650631197,
+        "reported": false
+      },
+      {
+        "id": "E026",
+        "kind": "near-duplicate",
+        "rows": [
+          75,
+          146
+        ],
+        "similarity": 0.8234935354633932,
+        "reported": false
+      },
+      {
+        "id": "E048",
+        "kind": "near-duplicate",
+        "rows": [
+          131,
+          262
+        ],
+        "similarity": 0.8203177100296102,
+        "reported": false
+      },
+      {
+        "id": "E058",
+        "kind": "exact-duplicate",
+        "rows": [
+          147,
+          196
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E065",
+        "kind": "exact-duplicate",
+        "rows": [
+          184,
+          204
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E068",
+        "kind": "exact-duplicate",
+        "rows": [
+          188,
+          234
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E075",
+        "kind": "exact-duplicate",
+        "rows": [
+          218,
+          227
+        ],
+        "similarity": 1,
+        "reported": true
+      },
+      {
+        "id": "E087",
+        "kind": "near-duplicate",
+        "rows": [
+          275,
+          277
+        ],
+        "similarity": 0.8297260936888927,
+        "reported": false
+      }
+    ],
+    "trapPairs": [
+      {
+        "id": "T01",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          13,
+          310
+        ],
+        "similarity": 0.5981220274475568,
+        "reported": false
+      },
+      {
+        "id": "T03",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          88,
+          92
+        ],
+        "similarity": 0.7802943954524567,
+        "reported": false
+      },
+      {
+        "id": "T04",
+        "kind": "similar-not-duplicate",
+        "rows": [
+          108,
+          192
+        ],
+        "similarity": 0.5956055345381108,
+        "reported": false
+      }
+    ],
+    "otherAbove": [],
+    "nextBelow": {
+      "rowIds": [
+        66,
+        244
+      ],
+      "similarity": 0.8385746650631197
+    },
+    "nextOtherBelow": {
+      "rowIds": [
+        116,
+        160
+      ],
+      "similarity": 0.8014572628943998
+    }
+  }
+}

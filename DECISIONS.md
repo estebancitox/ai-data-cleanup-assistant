@@ -918,3 +918,197 @@ Resolution: logged, not verified and not fixed.
 repeats the comparison (first row, column, last row). `src/core` was not open to change.
 
 Resolution: logged. A unit test compares the result with the order of `analyze`.
+
+### Held-out run (2026-11-23, 19:29 -05, at the tag `freeze`; logged in session 5b)
+
+The held-out dataset was scored once, by the owner, at `6e841da` (tag `freeze`). The run file is
+`evals/runs/20261124T002953Z-heldout-contacts.json`: mode `heldout`, dataset `contacts` (310
+rows, 14 columns; 99 planted errors and 4 traps; the clean file has 300 rows), model
+`claude-sonnet-5-5`, SHA-256 `1e833905...fbb521d7e`, which is the hash of
+`fixtures/heldout/contacts.dirty.csv`. Two model calls, each answered at the first attempt: the
+contract (9,650 ms) and one adjudication request with 1 case (2,785 ms; a range flag,
+confirmed). The model proposed 1 missing token, 10 canonical groups, 8 suspicious values, 2
+ranges, 4 dependencies and 1 format; verification rejected 2 dependencies.
+
+```
+Overall
+issues  TP  FP  extra  FN  precision  recall
+------  --  --  -----  --  ---------  ------
+99      86  11  2      13  0.887      0.869
+
+T2 and T3 (SPEC 8.4)
+threshold  check                measured          required      result
+---------  -------------------  ----------------  ------------  ------
+T2         overall precision    0.887             0.90 or more  FAIL
+T2         overall recall       0.869             0.80 or more  PASS
+T3         fabricated fixes     0                 0             PASS
+T3         fix accuracy         1.000 (63 of 63)  0.95 or more  PASS
+T3         fixes on clean data  4                 2 or fewer    FAIL
+```
+
+The two tables are written here from the `score` and `thresholds` of the run file, in the
+layout the command prints. The held-out run has no threshold (T4, SPEC §8.4): T2 and T3 are
+shown for comparison and decide nothing. Next to it, the development dataset in the recorded
+run `20261123T212859Z`: `137 130 0 7 0 1.000 1.000`.
+
+Recall is complete for 13 of the 17 kinds. The 13 missed errors are in four kinds:
+`near-duplicate` 0 of 6, `invalid-format` 2 of 6, `outlier-typo` 3 of 5, `impossible-value` 3
+of 4. Both failing lines come from one group, F71: the 11 false positives are the whole
+distance to a precision of 0.90 (86 of 97), and the 4 fixes on clean data are 4 of them.
+
+One classification per failure group follows, under SPEC §8.5. The owner proposed them;
+session 5b checked each against the run file, the held-out files and the code, and says where
+the files add something. Nothing in code, prompts, thresholds or fixtures changes because of
+this run: the claim moves, not the code (§8.5, point 4).
+
+**F70. Near-duplicates: 0 of 6 found (E013, E014, E024, E026, E048, E087). Classification:
+rule definition.** R2 reports pairs at 0.90 or more (SPEC §5.4; `r2.threshold` in the run).
+The six planted pairs score 0.8203 (E048), 0.8213 (E013), 0.8235 (E026), 0.8297 (E087), 0.8372
+(E014) and 0.8386 (E024). In the dirty file each pair differs in 3 of the 14 columns:
+`contact_id`, one name (cut short or with a letter added on the copy) and `notes`. The
+highest pair that is neither planted nor a trap is rows 116 and 160 at 0.8015, and the closest
+trap, T03 (rows 88 and 92), scores 0.7803, so the planted pairs sit 0.019 above the best other
+pair. No pair is at 0.90 or more except the 4 exact duplicates, all found. On the development
+dataset the planted near pairs scored 0.9315 to 0.9683 (SPEC §8.4). R2 does what the SPEC
+says, so the miss is in the definition: the threshold was set on one file and does not fit a
+copy that has a new identifier, a changed name and a different note. Because R2 reported no
+candidate, S1 had no duplicate to judge.
+
+Status: confirmed as the owner proposed it. Not fixed.
+
+**F71. The 11 false positives. Classification: prompt and rule definition.** All 11 are on
+rows 34, 35, 66, 131, 146 and 277, which are one row of each missed pair of F70, the copy.
+Every one is on a cell where the copy differs from its original:
+
+- 4 `canonical-value` fixes that rewrite the name of the copy to the spelling of the original:
+  "Dieg" to "Diego" (row 35), "Kenjie" to "Kenji" (row 66), "Abbottn" to "Abbott" (row 146),
+  "Castillos" to "Castillo" (row 277). They are the 4 fixes on clean data of T3.
+- 7 `flagged-value` flags: `last_name` "X" on row 34 (the original holds "Xu"), `first_name`
+  "S." on row 131 (the original holds "Simon"), and the note "Imported again from the event
+  badge scan." on rows 34, 35, 66, 146 and 277, the only five rows that hold it.
+
+The prompt asks for canonical groups of "abbreviations, synonyms and misspellings" and for
+suspicious values that look like "test data, junk or leftovers from a template" in any column
+(`src/ai/prompts.ts`, lines 18 and 19); it does not set names or free text apart. Verification
+accepted all of them, because each value is in the data and rare (SPEC §6.3).
+
+What the files add to the owner's classification: these are not unrelated mistakes. The
+model's rules found the traces of the planted copies, cell by cell, while R2 missed the rows.
+The truth lists each of these rows only as half of a duplicate pair, with no column, and only
+a `duplicate` issue can locate a duplicate error (SPEC §8.2), so an issue on a cell of a copy
+is a false positive whether or not the pair is reported. A reader could also call that part a
+matter of the scoring rule. It does not change the classification: a fix that rewrites a
+person's name seen once to a name seen seven to nine times is a risk on real data.
+
+Status: confirmed as the owner proposed it, with the note above. Not fixed.
+
+**F72. `invalid-format`: 4 of 6 missed (E004, E012, E060, E092). Classification: a cut
+feature, C5.** The four are in `email`: "felix.anderson@solsticeapparel" (row 11, no dot in
+the domain), "miles garcia@evergreenfoods.example" (row 33, a space),
+"martin.rossi.riverbendlegal.example" (row 161, no @) and
+"olivia.foster@@beacontelecom.example" (row 287, two @). The model marked the column with the
+format `email` and verification kept it. The validator of §6.3 answers false for each of the
+four values (the expression of `src/core/contract/verify.ts`, line 18, run on them in session
+5b), so C5 would have flagged all four. C5 is CUT (SPEC 1.3, §5.5; cut list, item 13). The two
+that were found are not emails: "C0" in `state` (E020, by `canonical-value`) and "(503)
+555-01" in `phone` (E035, by `shape`). "A cut feature" is not one of the four classes of
+§8.5; the nearest is rule definition, since the SPEC is where C5 was cut.
+
+Status: confirmed as the owner proposed it. Not fixed.
+
+**F73. `outlier-typo`: 2 of 5 missed (E047 and E073). Classification: rule definition.** The
+cells are `annual_revenue_usd` on row 130, "390000000000", and on row 212, "39000000000".
+Both rows belong to the company "Orchard Education", whose value is 390000000. Three
+detectors could have reported them:
+
+- C3, `dependency`. The run verified the rule company decides annual_revenue_usd (293 of 306
+  rows, 95.8%), and C3 located the other three errors of this kind with it (E003, E018, E032).
+  The group of this company has 11 rows. 8 hold "390000000"; the other 3 are the two typos and
+  row 142, "$390,000,000" (E054, a planted `number-format` error, which R5 reports with the fix
+  390000000). C3 compares the values by comparison key (SPEC §5.5, §6.3), which is text, so it
+  counts three different values against the majority: 8 of 11 is 72.7%, under the 80% that a
+  clear majority needs. Read as the number it is, row 142 agrees with the majority, and 9 of
+  11 is 81.8%: C3 would have reported both rows. The groups that located the other three have
+  81.8% (9 of 11) and 87.5% (7 of 8).
+- R8, `outlier`. On the raw scale the fences are -762,400,000 and 1,026,800,000, and 25 of the
+  306 numbers (8.2%) are outside, so the scale is skipped for this column (over 5%; SPEC §5.4,
+  F7). On the log10 scale the fences are 1.33 and 13.73, about 21 to 5.4e13; the two values
+  are at 11.59 and 10.59, inside. R8's only issues in this file are the two numbers that are
+  not positive (rows 73 and 133).
+- C4, `range`. The verified range of the column is 0 and above, with no upper bound.
+
+The miss is in the definition of C3: in a number column it counts spellings before R5 has
+normalised them. It is the family of F59. The condition that R8 skips a scale is the SPEC's
+own (F7) and worked as written.
+
+Status: the owner asked which detector should have caught each and why it did not; this is
+the answer from the files. The classification is proposed by session 5b. Not fixed.
+
+**F74. `impossible-value`: 1 of 4 missed (E006). Classification: prompt, with a gap in the
+rule definition.** The cell is `signup_date` on row 16, "2031-05-02" (clean: "2025-07-04").
+The other dates of the column in that layout run from 2024-01-02 to 2026-11-02, plus
+"1900-01-01" (E050, found). The detector that should have reported it is C4, `range`, the
+only one that judges a date by its value: R8 reads number columns only
+(`src/core/analyze/detectors/outlier.ts`), R6 checks the layout and that the date exists, and
+the core has no clock. The model's range for the column is "2000-01-01" and above, with no
+upper bound, for the reason "Signup dates cannot be implausibly old."; verification kept it
+(307 of 308 values inside). So 2031-05-02 is inside the range. The same range located E050.
+Nothing in the prompt leads to an upper bound on a date: it says to "Use an empty string for a
+side with no bound", its example is a range with "no upper bound" (`src/ai/prompts.ts`, lines
+20 and 25), and the request carries no current date. The gap in the rules: no rule detector
+reports a date far from the other dates of its column.
+
+Status: the answer the owner asked for; the classification is proposed by session 5b. Not
+fixed.
+
+### Third review, of `6d8bf55..6e841da` (2026-11-23; logged in session 5b)
+
+The review returned FIX with one MUST FIX and two notes, plus two points it did not verify.
+The owner records all of them as open and changes no code. Session 5b read the lines each one
+cites; none was reproduced in a browser.
+
+**F75. A decision clicked while a snapshot is being computed is lost (third review, finding
+(d), MUST FIX; SPEC §7.3).** `src/components/Assistant.tsx`, lines 58 and 59: when a snapshot
+arrives, the loop calls `carryDecided` with the decisions of that moment and makes the result
+the analysis on screen. The seam computes a snapshot on the main thread (`analyze` with the
+contract: about 8 seconds on a 50,000-row file, F49), and a click made meanwhile is handled
+only after those two lines have run. The click belongs to the page as it was: it stores a
+decision under the id of an issue that the new analysis may no longer hold. That issue is not
+in the analysis on screen any more, so no later snapshot carries it either. The decision is
+not counted and not applied, and nothing says so. It is the loss of F53 again, through a
+narrower window.
+
+Status: open.
+
+**F76. The bar can say that decisions changed after a download when they did not (third
+review, note; SPEC §7.3).** `carryDecided` returns a new object whenever it carries an issue
+(`src/lib/carry.ts`, line 39), also for a snapshot that changes only the state of the AI run.
+`Review` treats a download as out of date when the analysis is not the same object as the one
+the file was built from (`src/components/Review.tsx`, line 141). With one carried issue on
+screen, a snapshot that arrives after a download raises "Decisions changed after a download"
+although the decisions and the issues are the same.
+
+Status: open.
+
+**F77. The doubt notice disappears after "Run live" while the fix is still accepted (third
+review, note; SPEC §7.3; see F65).** `doubtedAcceptedFixes` reads the opinion from the issue
+on screen (`src/lib/decisions.ts`, line 43). After "Run live" the same issue arrives from the
+live analysis under the same id, with no opinion until the live one comes, and possibly with
+another one. The notice goes away at that moment. SPEC §7.3 says it goes away when none of
+those fixes is left accepted, and the fix is still accepted.
+
+Status: open.
+
+**F78. Two points about the SDK that the reviewer did not verify (third review; see F63).**
+First, `logLevel: 'off'` is an option of the client, and the SDK has a second logger for code
+that has no client: `defaultLogger` in `@anthropic-ai/sdk` 1.13.0 (`internal/utils/log.js`)
+takes its level from `ANTHROPIC_LOG`, and `core/middleware.js` and
+`internal/trace-headers.js` call it. Second, the SDK reads OpenTelemetry settings from the
+environment (`internal/tracing.js`): `ANTHROPIC_OPEN_TELEMETRY`,
+`ANTHROPIC_OPEN_TELEMETRY_PROPAGATION`, `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE`, which
+has a value `content`, and `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES`. Session 5b
+confirmed that these names are in the installed package, and that `package.json` and `src`
+name no OpenTelemetry package. Whether either path can put rows of the user's file into a log
+or a trace on this server was not verified.
+
+Status: open.
